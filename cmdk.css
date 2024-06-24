@@ -1,3 +1,16 @@
+.cmdk-wrapper-container {
+	position: fixed;
+	z-index: 50;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	min-width: 600px;
+	box-shadow: 0 2px 4px #0000001a, 0 4px 8px rgba(0, 0, 0, 0.1);
+	box-sizing: border-box;
+	overflow: hidden;
+	border-radius: 10px;
+}
+
 [cmdk-root] {
 	box-sizing: border-box;
 	background-color: #fff;

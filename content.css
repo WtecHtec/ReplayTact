@@ -1,0 +1,17 @@
+.cmdk-header-wrapper {
+    display: flex;
+    align-items: center;
+}
+.totips {
+    display: inline-block;
+    background-color: #1677ff;
+    padding: 4px;
+    border-radius: 4px;
+    color: #fff;
+    font-weight: bold;
+    max-width: 80px;
+    overflow: hidden;
+    flex-shrink: 0;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}

@@ -28,6 +28,7 @@ function bindContextMenu() {
     chrome.contextMenus.onClicked.addListener(function (info, tab) {
         switch (info.menuItemId) {
             case 'ReplayText':
+            case 'ReplayAction':
                 const { selectionText } = info
                 chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
                     // 向content.js发送消息
@@ -50,13 +51,27 @@ function bindOnMessage() {
         const { action } = request;
         console.log('bg --- request', request)
         if (typeof ACTICON_MAP[action] === 'function') {
-          ACTICON_MAP[action]({ request, sender, sendResponse });
+            ACTICON_MAP[action]({ request, sender, sendResponse });
         } else {
-          console.log('No found ACTICON_MAP action---->', action);
+            console.log('No found ACTICON_MAP action---->', action);
         }
         return true; // 表示我们将异步发送响应
-      });
+    });
 }
 
-bindOnMessage() 
+/**
+ * 绑定 快捷键事件
+ */
+function bindCommand() {
+    chrome.commands.onCommand.addListener((command) => {
+        chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+            chrome.tabs.sendMessage(tabs[0].id, { action: command }, function (response) {
+                console.log(response?.result);
+            });
+        });
+    });
+}
+
+bindOnMessage()
 bindContextMenu()
+bindCommand()

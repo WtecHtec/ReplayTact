@@ -12,6 +12,7 @@
   "dependencies": {
     "@plasmohq/storage": "^1.11.0",
     "antd": "^5.18.3",
+    "cmdk": "^1.0.0",
     "plasmo": "0.88.0",
     "react": "18.2.0",
     "react-dom": "18.2.0"
@@ -32,6 +33,15 @@
     "permissions": [
       "contextMenus",
       "unlimitedStorage"
-    ]
+    ],
+    "commands": {
+      "active_extention_launcher": {
+        "suggested_key": {
+          "default": "Ctrl+H",
+          "mac": "Command+H"
+        },
+        "description": "Active Extension Launcher"
+      }
+    }
   }
 }
