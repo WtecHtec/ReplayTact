@@ -1,0 +1,1 @@
+export const REPLAT_DATA = 'REPLAT_DATA'

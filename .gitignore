@@ -29,3 +29,5 @@ release/build
 *.lock
 *-lock.json
 node_modules
+build
+.plasmo
