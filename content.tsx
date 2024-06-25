@@ -1,9 +1,10 @@
 
 import cssText from 'data-text:~content.css';
 import cssCmdkText from 'data-text:~cmdk.css';
+import cssInspectorText from 'data-text:~inspector.css';
 import antdResetCssText from "data-text:antd/dist/reset.css"
 
-import React from "react";
+import React, { useEffect } from "react";
 import type { PlasmoCSConfig, PlasmoGetShadowHostId } from 'plasmo';
 import RelpayText from '~components/replaytext';
 import CmdkLauncher from '~components/cmdklauncher';
@@ -11,11 +12,12 @@ import ActionEditor from '~components/actioneditor';
 
 export const config: PlasmoCSConfig = {
     matches: ["<all_urls>"],
-    all_frames: true
+    all_frames: true,
+    css: ["./inspector.css"],
 }
 export const getStyle = () => {
-    const style = document.createElement('style');
-    style.textContent = antdResetCssText + cssText + cssCmdkText;
+    const style = window.document.createElement('style');
+    style.textContent = antdResetCssText + cssText + cssCmdkText + cssInspectorText;
     return style;
 };
 
@@ -25,7 +27,9 @@ export const getShadowHostId: PlasmoGetShadowHostId = () => HOST_ID
 
 
 export default function InitContent() {
-
+    useEffect(() => {
+        getStyle()
+    }, [])
     return (
         <>
             <ActionEditor></ActionEditor>

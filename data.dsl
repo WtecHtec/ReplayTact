@@ -8,8 +8,9 @@
 }
 
 flow: {
+    id: uuid
     xptah: String
-    title: String,
-    type: click / input
+    title: String
+    type: click / input / event
     value: String
 }
