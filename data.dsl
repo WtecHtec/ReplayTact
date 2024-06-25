@@ -6,3 +6,10 @@
     description: string
     datas: String | flow[]
 }
+
+flow: {
+    xptah: String
+    title: String,
+    type: click / input
+    value: String
+}

@@ -22,7 +22,7 @@ function bindContextMenu() {
         id: 'ReplayAction',
         title: 'Replay Action',
         parentId: 'ReplayTact', // 设置为顶级菜单项的ID来模拟父子关系  
-        contexts: ['page'],
+        contexts: ['page','selection'],
     });
 
     chrome.contextMenus.onClicked.addListener(function (info, tab) {
