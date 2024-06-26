@@ -205,6 +205,9 @@ export default function ActionEditor() {
     const handleOpenSave = () => {
         setIsMoadalOpen(true)
     }
+    const handleCancel = () => {
+        setIsMoadalOpen(false)
+    }
     return <>
         <Drawer
             title="Action Editor"
@@ -275,6 +278,6 @@ export default function ActionEditor() {
                 </Drawer>
             </div>
         </Drawer>
-        <SaveDialog title="Save Replay Action" modalOpen={isMoadalOpen} onSave={handleSaveAction}></SaveDialog>
+        <SaveDialog title="Save Replay Action" modalOpen={isMoadalOpen}  onClose={handleCancel}  onSave={handleSaveAction}></SaveDialog>
     </>
 }

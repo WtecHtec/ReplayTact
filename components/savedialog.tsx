@@ -3,7 +3,7 @@
 import { Button, Form, Input, Modal } from "antd"
 import React, { useEffect, useState } from "react"
 
-export default function SaveDialog({title = 'Replay Text', modalOpen = false, onSave = (values) => {}}) {
+export default function SaveDialog({title = 'Replay Text', modalOpen = false, onClose=() => {},  onSave = (values) => {}}) {
 
     const [isModalOpen, setIsModalOpen] = useState(modalOpen);
 
@@ -19,6 +19,7 @@ export default function SaveDialog({title = 'Replay Text', modalOpen = false, on
     }
     const handleCancel = () => {
         setIsModalOpen(false)
+        typeof onClose === 'function' && onClose()
     }
     return <>
         <Modal title={title} maskClosable={false} onCancel={handleCancel} open={isModalOpen} footer={null}>

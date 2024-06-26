@@ -27,9 +27,6 @@ export const getShadowHostId: PlasmoGetShadowHostId = () => HOST_ID
 
 
 export default function InitContent() {
-    useEffect(() => {
-        getStyle()
-    }, [])
     return (
         <>
             <ActionEditor></ActionEditor>

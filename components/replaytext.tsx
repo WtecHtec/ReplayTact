@@ -10,6 +10,7 @@ export default function RelpayText() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     useEffect(() => {
         const handle = (message) => {
+            console.log('message---', message)
             const { action, data } = message
             cacheData  = data
             if (action === 'ReplayText') {
@@ -31,6 +32,6 @@ export default function RelpayText() {
         setIsModalOpen(false)
     }
     return <>
-        <SaveDialog title="Save Replay Text" modalOpen={isModalOpen} onSave={onFinish}></SaveDialog>
+        <SaveDialog title="Save Replay Text" modalOpen={isModalOpen} onClose={handleCancel}  onSave={onFinish}></SaveDialog>
     </>
 }

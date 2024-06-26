@@ -16,7 +16,6 @@ export default function CmdkLauncher() {
     const getReplayDatas = async () => {
         const datas = await searchReplayDatas(domain) as any
         datas.push(TestAction)
-        console.log('getReplayDatas', datas)
         setReplayDatas(datas)
     }
     useEffect(() => {
@@ -45,7 +44,9 @@ export default function CmdkLauncher() {
     }, [open])
 
     const handleEventText = (data) => {
-        if (cacheEl.tagName  && cacheEl.tagName.toLowerCase() === 'input' || cacheEl.tagName.toLowerCase === 'textarea') {
+        if (cacheEl.tagName  
+            && cacheEl.tagName.toLowerCase() === 'input'
+            || cacheEl.tagName.toLowerCase() === 'textarea') {
             cacheEl.value = data
             message.info('处理完成！')
         } else {
