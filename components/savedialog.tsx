@@ -22,7 +22,7 @@ export default function SaveDialog({title = 'Replay Text', modalOpen = false, on
         typeof onClose === 'function' && onClose()
     }
     return <>
-        <Modal title={title} maskClosable={false} onCancel={handleCancel} open={isModalOpen} footer={null}>
+        <Modal zIndex={9999} title={title} maskClosable={false} onCancel={handleCancel} open={isModalOpen} footer={null}>
             <Form
                 name="basic"
                 wrapperCol={{ span: 16 }}

@@ -8,6 +8,7 @@ import useInspector from "~hooks/useInspector";
 import { getDomain, uuid } from "~uitls";
 import SaveDialog from './savedialog';
 import { saveReplayAction } from "~api";
+import runAction from "~runactions";
 
 const MOVE_Y = 100
 const { Option } = Select;
@@ -253,6 +254,17 @@ export default function ActionEditor() {
     const handleCancel = () => {
         setIsMoadalOpen(false)
     }
+		const handelRun = async () => {
+			onClose()
+			const flowDatas = reactFlowInstanceRef.current.toObject()
+		  const status =	await runAction(flowDatas.nodes, flowDatas.edges)
+			console.log('status---', status)
+			if (status === -1) {
+				message.warning('没有找到对应DOM')
+			} else if (status === 0) {
+				message.error('处理失败')
+			}
+		}
     return <>
         <Drawer
             title="Action Editor"
@@ -268,6 +280,9 @@ export default function ActionEditor() {
                         </Button>
                         <Button type="default" onClick={handelReset}>
                             RESET
+                        </Button>
+												<Button type="default" onClick={handelRun}>
+                            RUN
                         </Button>
                 </div>
                 <ReactFlowProvider>

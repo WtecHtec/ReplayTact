@@ -6,7 +6,7 @@ import { getDomain } from '~uitls'
 import runAction from '~runactions';
 import TextSvg from 'data-base64:~assets/text.svg'
 import ActionSvg from 'data-base64:~assets/action.svg'
-import TestAction from './test'
+// import TestAction from './test'
 const domain = getDomain()
 let cacheEl = null
 export default function CmdkLauncher() {
@@ -15,7 +15,7 @@ export default function CmdkLauncher() {
     const [replayDatas, setReplayDatas] = React.useState([])
     const getReplayDatas = async () => {
         const datas = await searchReplayDatas(domain) as any
-        datas.push(TestAction)
+        // datas.push(TestAction)
         setReplayDatas(datas)
     }
     useEffect(() => {
@@ -58,6 +58,7 @@ export default function CmdkLauncher() {
     const handleEventAction = async (data) => {
         const { nodes, edges } = data
         const status = await runAction(nodes, edges)
+				console.log('status---', status)
         if (status === -1) {
             message.warning('没有找到对应DOM')
         } else if (status === 0) {
