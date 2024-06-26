@@ -15,10 +15,10 @@ const items: any[] = [
         label: 'DOM',
         key: 'dom',
     },
-    {
-        label: '键盘事件',
-        key: 'keydownevent',
-    },
+    // {
+    //     label: '键盘事件',
+    //     key: 'keydownevent',
+    // },
 ]
 export default function PlusEdge({
     id,
@@ -64,7 +64,6 @@ export default function PlusEdge({
                 requiredExtensions="http://www.w3.org/1999/xhtml"
             >
                 <body>
-
                     <Dropdown menu={{ items, onClick: ({key}) => {onEdgeClick(key, id)}  }} trigger={['click']} >
                         <button style={{
                             "width": "32px",

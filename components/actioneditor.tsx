@@ -44,13 +44,13 @@ const edgeTypes: any = {
 
 export default function ActionEditor() {
     const [form] = Form.useForm();
-    const [xPath, updateStatus] = useInspector()
+    const [xPath, updateStatus, refresh] = useInspector()
     const reactFlowInstanceRef = useRef(null)
     const [open, setOpen] = useState(false);
     const [openSetting, setOpenSetting] = useState(false);
     const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-    const [currentFrom, setCurrentFrom] = useState({});
+    const [currentFrom, setCurrentFrom] = useState<any>({});
     const flowContainerRef = useRef(null)
     const currentObj = useRef({
         id: '',
@@ -93,14 +93,14 @@ export default function ActionEditor() {
     useEffect(() => {
         console.log('xPath----', xPath, nodes, edges, currentObj.current)
         const { edge } = currentObj.current || {}
-        if (xPath && edge && reactFlowInstanceRef.current) {
+        if (refresh !== -1 && xPath && edge && reactFlowInstanceRef.current) {
             setOpen(true)
             addActions(edge, xPath)
             // requestAnimationFrame(() => {
             //     reactFlowInstanceRef.current.fitView()
             // })
         }
-    }, [xPath])
+    }, [xPath, refresh])
 
     const addActions = (edge,  xPath, handleType = 'click') => {
         const id = uuid(8);
@@ -131,21 +131,66 @@ export default function ActionEditor() {
         setOpen(false)
     }
     const onInit = (reactFlowInstance) => {
-        reactFlowInstance.setViewport({ x: '50%', y: '50%', zoom: 0.7 });
+        reactFlowInstance.setViewport({ x: 200, y: 50, zoom: 0.5 });
         reactFlowInstanceRef.current = reactFlowInstance;
     }
     const onNodeClick = (_, node) => {
-        console.log('onNodesChange', node)
         const { id, data }  = node
-        if (['1', '2'].includes(id)) return
-        // form.setFieldsValue(data)
-        setCurrentFrom(data)
+        if (['1', '2'].includes(id)) {
+					console.log('return')
+					return
+				} 
+        form.setFieldsValue(data)
+        setCurrentFrom(node)
         setOpenSetting(true)
     }
 
     const onFinish = (values: any) => {
-        console.log(values);
+				setNodes((nds) =>
+					nds.map((node) => {
+						if (node.id === currentFrom.id) {
+							// when you update a simple type you can just update the value
+							node.data =  {...node.data, ...values}
+						}
+						return node;
+					})
+				);
+				setOpenSetting(false)
     };
+
+		const handleDelNode = () => {
+			setNodes((nds) =>
+				nds.filter((node) => {
+					return node.id !== currentFrom.id;
+				})
+			);
+			setEdges((edges) =>
+				{
+					let orsource = ''
+					let ortarget = ''
+					const filterEgs = edges.filter((edge) => {
+						if (edge.source === currentFrom.id) {
+							ortarget = edge.target
+						}
+						if (edge.target === currentFrom.id) {
+							orsource = edge.source
+						}
+						return edge.source !== currentFrom.id && edge.target !== currentFrom.id;
+					})
+					if (orsource && ortarget) {
+						filterEgs.push({
+							id: uuid(),
+							source: orsource,
+							target: ortarget,
+							animated: true,
+							type: 'plusedge',
+						})
+					}
+					return filterEgs;
+				}
+			);
+			setOpenSetting(false)
+		}
 
     return <>
         <Drawer
@@ -158,8 +203,6 @@ export default function ActionEditor() {
             <div ref={flowContainerRef} className="reactflow-container" style={{ height: '100%' }}>
                 <ReactFlowProvider>
                     <ReactFlow
-                        snapToGrid={true}
-                        attributionPosition="top-right"
                         onNodeClick={onNodeClick}
                         onInit={onInit}
                         nodes={nodes}
@@ -169,7 +212,6 @@ export default function ActionEditor() {
                         onEdgesChange={onEdgesChange}
                         fitView
                     >
-                        <Controls />
                     </ReactFlow>
                 </ReactFlowProvider>
                 <Drawer title="Action Settings"
@@ -185,11 +227,11 @@ export default function ActionEditor() {
                         onFinish={onFinish}
                         style={{ maxWidth: 600 }}
                     >
-                        <Form.Item name="label" label="描述" rules={[{ required: true, max: 6 }]}>
+                        <Form.Item name="label" label="描述" rules={[{ required: true, max: 8 }]}>
                             <Input />
                         </Form.Item>
                         <Form.Item name="handleType" label="操作" rules={[{ required: true }]}>
-                            <Select placeholder="请选择操作类型">
+                            <Select  placeholder="请选择操作类型">
                                 <Option value="click">点击</Option>
                                 <Option value="input">输入</Option>
                                 <Option value="keydownevent">键盘按下</Option>
@@ -202,6 +244,9 @@ export default function ActionEditor() {
                             <Space>
                                 <Button type="default" htmlType="submit">
                                     Submit
+                                </Button>
+																<Button type="text" onClick={handleDelNode} >
+                                    Delete
                                 </Button>
                             </Space>
                         </Form.Item>
