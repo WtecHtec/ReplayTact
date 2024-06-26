@@ -21,6 +21,10 @@ export async function saveReplayText(fromData) {
     await request({ action: SAVE_REPLAY_TEXT, datas: { ...fromData } })
 }
 
-export async function searchReplayText(domain: string) {
+export async function searchReplayDatas(domain: string) {
     return await request({ action: SEARCH_REPLAY_DATAS, domain }, (res) => res.datas)
+}
+
+export async function saveReplayAction(fromData) {
+    await request({ action: SAVE_REPLAY_TEXT, datas: { ...fromData } })
 }

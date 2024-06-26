@@ -13,7 +13,7 @@ import ActionEditor from '~components/actioneditor';
 export const config: PlasmoCSConfig = {
     matches: ["<all_urls>"],
     all_frames: true,
-    css: ["./inspector.css"],
+    css: ["./inspector.css", "./inject.css"],
 }
 export const getStyle = () => {
     const style = window.document.createElement('style');
@@ -27,9 +27,6 @@ export const getShadowHostId: PlasmoGetShadowHostId = () => HOST_ID
 
 
 export default function InitContent() {
-    useEffect(() => {
-        getStyle()
-    }, [])
     return (
         <>
             <ActionEditor></ActionEditor>

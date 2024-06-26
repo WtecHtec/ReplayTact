@@ -1,11 +1,13 @@
 import React, { useRef, useState } from "react";
 import { useEffect } from "react"
-import { Drawer, Button, Form, Input, Select, Space } from 'antd';
+import { Drawer, Button, Form, Input, Select, Space, message } from 'antd';
 import ReactFlow, { ReactFlowProvider, Controls,  useNodesState, useEdgesState, } from "react-flow-renderer";
 import PlusEdge from "./plusedge";
 import EventManager from "~eventmanager";
 import useInspector from "~hooks/useInspector";
-import { uuid } from "~uitls";
+import { getDomain, uuid } from "~uitls";
+import SaveDialog from './savedialog';
+import { saveReplayAction } from "~api";
 
 const MOVE_Y = 100
 const { Option } = Select;
@@ -23,20 +25,20 @@ const tailLayout = {
 
 const initialNodes = [
     {
-        id: '1',
+        id: 'start',
         type: 'input',
         data: { label: '开始' },
         position: { x: 250, y: 50 },
     },
     {
-        id: '2',
+        id: 'end',
         type: 'output',
         data: { label: '结束' },
         position: { x: 250, y: 150 },
     },
 ];
 const initialEdges = [
-    { id: 'e1-2', source: '1', target: '2', animated: true, type: 'plusedge', },
+    { id: 'e1-2', source: 'start', target: 'end', animated: true, type: 'plusedge', },
 ];
 const edgeTypes: any = {
     plusedge: PlusEdge,
@@ -52,11 +54,25 @@ export default function ActionEditor() {
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
     const [currentFrom, setCurrentFrom] = useState<any>({});
     const flowContainerRef = useRef(null)
+    const [isMoadalOpen, setIsMoadalOpen] = React.useState(false)
     const currentObj = useRef({
         id: '',
         edge: null
     })
     useEffect(() => {
+        // 初始化 临时数据
+        const flowData = localStorage.getItem('replayflow') || ''
+        if (flowData) { 
+            try {
+                const { nodes, edges } = JSON.parse(flowData)
+                if (Array.isArray(nodes) && Array.isArray(edges)) {
+                    setNodes(nodes)
+                    setEdges(edges)
+                }
+            } catch (error) {
+                console.log('初始化异常', error)
+            }
+        }
         const handle = (message) => {
             const { action } = message
             if (action === 'ReplayAction') {
@@ -68,6 +84,24 @@ export default function ActionEditor() {
             chrome.runtime.onMessage.removeListener(handle)
         }
     }, [])
+
+
+    useEffect(() => {
+        // 缓存临时数据 
+        if (!open && reactFlowInstanceRef.current) {
+            const flowData = reactFlowInstanceRef.current.toObject()
+            try {
+                const strFlowData = JSON.stringify(flowData)
+                console.log('strFlowData---', strFlowData)
+                if (strFlowData) {
+                    localStorage.setItem('replayflow', strFlowData)
+                }
+            } catch (error) {
+                console.log('存储异常', error)
+            }
+        }
+    }, [open])
+
     useEffect(() => {
         const handleEvent = (data) => {
             console.log('Event received:', data);
@@ -91,9 +125,8 @@ export default function ActionEditor() {
     }, [edges]);
 
     useEffect(() => {
-        console.log('xPath----', xPath, nodes, edges, currentObj.current)
         const { edge } = currentObj.current || {}
-        if (refresh !== -1 && xPath && edge && reactFlowInstanceRef.current) {
+        if (refresh !== -1 && xPath && xPath !== '' && edge && reactFlowInstanceRef.current) {
             setOpen(true)
             addActions(edge, xPath)
             // requestAnimationFrame(() => {
@@ -131,7 +164,7 @@ export default function ActionEditor() {
         setOpen(false)
     }
     const onInit = (reactFlowInstance) => {
-        reactFlowInstance.setViewport({ x: 200, y: 50, zoom: 0.5 });
+        reactFlowInstance.setViewport({ x: 200, y: 50, zoom: 0.6 });
         reactFlowInstanceRef.current = reactFlowInstance;
     }
     const onNodeClick = (_, node) => {
@@ -192,15 +225,51 @@ export default function ActionEditor() {
 			setOpenSetting(false)
 		}
 
+    const handelReset = () => {
+        setNodes(initialNodes)
+        setEdges(initialEdges)
+    }
+
+    /**
+     *  保存
+     */
+    const handleSaveAction = async (values) => {
+        if (nodes && nodes.length <= 2) {
+            message.warning('请编排action')
+            return
+        }
+        const domain = getDomain()
+        const id = uuid()
+        const flowDatas = reactFlowInstanceRef.current.toObject()
+        await saveReplayAction({ ...values, datas: flowDatas, domain, id, type: 'action'  })
+        setIsMoadalOpen(false)
+    }
+    /**
+     *  打开保存窗
+     */
+    const handleOpenSave = () => {
+        setIsMoadalOpen(true)
+    }
+    const handleCancel = () => {
+        setIsMoadalOpen(false)
+    }
     return <>
         <Drawer
             title="Action Editor"
             onClose={onClose}
             placement='bottom'
             maskClosable={false}
-            zIndex={99}
+            zIndex={9999}
             open={open}>
             <div ref={flowContainerRef} className="reactflow-container" style={{ height: '100%' }}>
+                <div className="reactflow-header">
+                        <Button type="default" onClick={handleOpenSave}>
+                            SAVE
+                        </Button>
+                        <Button type="default" onClick={handelReset}>
+                            RESET
+                        </Button>
+                </div>
                 <ReactFlowProvider>
                     <ReactFlow
                         onNodeClick={onNodeClick}
@@ -217,7 +286,7 @@ export default function ActionEditor() {
                 <Drawer title="Action Settings"
                     onClose={() => setOpenSetting(false)}
                     placement='right'
-                    zIndex={999}
+                    zIndex={9999}
                     maskClosable={false}
                     open={openSetting}>
                     <Form
@@ -254,5 +323,6 @@ export default function ActionEditor() {
                 </Drawer>
             </div>
         </Drawer>
+        <SaveDialog title="Save Replay Action" modalOpen={isMoadalOpen}  onClose={handleCancel}  onSave={handleSaveAction}></SaveDialog>
     </>
 }

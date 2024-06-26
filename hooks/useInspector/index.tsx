@@ -2,7 +2,7 @@
 // @ts-nocheck
 import { useState, useEffect, useRef } from 'react'
 
-
+import {finder} from '@medv/finder'
 
 import { getMaxZIndex, createElement, addOverlay, getTouchMouseTargetElement } from './dom';
 import { getXpath } from './xpath';
@@ -76,7 +76,8 @@ function useInspector() {
         if (optRef.current.status) {
             e.preventDefault()
             e.stopPropagation()
-            const currentXpath = getXpath(currentTarget, true)
+            // const currentXpath = getXpath(currentTarget, true)
+            const currentXpath = finder(currentTarget)
             setXPath(currentXpath)
             _remove()
             setRefresh(Math.random())

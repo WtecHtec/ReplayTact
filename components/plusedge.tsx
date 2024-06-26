@@ -64,6 +64,7 @@ export default function PlusEdge({
                 requiredExtensions="http://www.w3.org/1999/xhtml"
             >
                 <body>
+
                     <Dropdown menu={{ items, onClick: ({key}) => {onEdgeClick(key, id)}  }} trigger={['click']} >
                         <button style={{
                             "width": "32px",
