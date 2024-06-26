@@ -65,7 +65,7 @@ export default function PlusEdge({
             >
                 <body>
 
-                    <Dropdown menu={{ items, onClick: ({key}) => {onEdgeClick(key, id)}  }} trigger={['click']} >
+                    <Dropdown overlayStyle={{zIndex: 9999}} menu={{ items, onClick: ({key}) => {onEdgeClick(key, id)}  }} trigger={['click']} >
                         <button style={{
                             "width": "32px",
                             "height": "32px",

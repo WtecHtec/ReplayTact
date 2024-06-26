@@ -25,20 +25,20 @@ const tailLayout = {
 
 const initialNodes = [
     {
-        id: '1',
+        id: 'start',
         type: 'input',
         data: { label: '开始' },
         position: { x: 250, y: 50 },
     },
     {
-        id: '2',
+        id: 'end',
         type: 'output',
         data: { label: '结束' },
         position: { x: 250, y: 150 },
     },
 ];
 const initialEdges = [
-    { id: 'e1-2', source: '1', target: '2', animated: true, type: 'plusedge', },
+    { id: 'e1-2', source: 'start', target: 'end', animated: true, type: 'plusedge', },
 ];
 const edgeTypes: any = {
     plusedge: PlusEdge,
@@ -92,6 +92,7 @@ export default function ActionEditor() {
             const flowData = reactFlowInstanceRef.current.toObject()
             try {
                 const strFlowData = JSON.stringify(flowData)
+                console.log('strFlowData---', strFlowData)
                 if (strFlowData) {
                     localStorage.setItem('replayflow', strFlowData)
                 }
@@ -125,7 +126,7 @@ export default function ActionEditor() {
 
     useEffect(() => {
         const { edge } = currentObj.current || {}
-        if (xPath && edge && reactFlowInstanceRef.current) {
+        if (xPath && xPath !== '' && edge && reactFlowInstanceRef.current) {
             setOpen(true)
             addActions(edge, xPath)
             // requestAnimationFrame(() => {
@@ -210,7 +211,7 @@ export default function ActionEditor() {
             onClose={onClose}
             placement='bottom'
             maskClosable={false}
-            zIndex={99}
+            zIndex={9999}
             open={open}>
             <div ref={flowContainerRef} className="reactflow-container" style={{ height: '100%' }}>
                 <div className="reactflow-header">
@@ -240,7 +241,7 @@ export default function ActionEditor() {
                 <Drawer title="Action Settings"
                     onClose={() => setOpenSetting(false)}
                     placement='right'
-                    zIndex={999}
+                    zIndex={9999}
                     maskClosable={false}
                     open={openSetting}>
                     <Form

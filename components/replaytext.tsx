@@ -10,7 +10,6 @@ export default function RelpayText() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     useEffect(() => {
         const handle = (message) => {
-            console.log(message)
             const { action, data } = message
             cacheData  = data
             if (action === 'ReplayText') {

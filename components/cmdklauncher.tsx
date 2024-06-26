@@ -3,8 +3,10 @@ import { Command } from 'cmdk'
 import { message } from 'antd';
 import { searchReplayDatas } from '~api'
 import { getDomain } from '~uitls'
+import runAction from '~runactions';
 import TextSvg from 'data-base64:~assets/text.svg'
 import ActionSvg from 'data-base64:~assets/action.svg'
+import TestAction from './test'
 const domain = getDomain()
 let cacheEl = null
 export default function CmdkLauncher() {
@@ -12,8 +14,10 @@ export default function CmdkLauncher() {
     const [open, setOpen] = React.useState(false)
     const [replayDatas, setReplayDatas] = React.useState([])
     const getReplayDatas = async () => {
-        const datas = await searchReplayDatas(domain)
-        setReplayDatas(datas as any)
+        const datas = await searchReplayDatas(domain) as any
+        datas.push(TestAction)
+        console.log('getReplayDatas', datas)
+        setReplayDatas(datas)
     }
     useEffect(() => {
         const handle = (message) => {
@@ -49,11 +53,24 @@ export default function CmdkLauncher() {
             message.info('复制完成！')
         }
     }
+
+    const handleEventAction = async (data) => {
+        const { nodes, edges } = data
+        const status = await runAction(nodes, edges)
+        if (status === -1) {
+            message.warning('没有找到对应DOM')
+        } else if (status === 0) {
+            message.error('处理失败')
+        }
+    }
     const handelCommandItem = (value) => {
         console.log('handelCommandItem', value)
         setOpen(false)
         const { type, datas } = replayDatas.find(item => item.id === value)
-        if (type === 'action') {}
+        if (type === 'action') {
+            console.log(type, datas)
+            handleEventAction(datas)
+        }
         else if (type === 'text') {
             handleEventText(datas)
         }

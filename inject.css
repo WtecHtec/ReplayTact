@@ -1,6 +1,6 @@
 .reactflow-container {
     position: relative;
-    z-index: 99;
+    z-index: 9999;
 }
 
 .reactflow-header {
