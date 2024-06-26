@@ -13,7 +13,7 @@ import ActionEditor from '~components/actioneditor';
 export const config: PlasmoCSConfig = {
     matches: ["<all_urls>"],
     all_frames: true,
-    css: ["./inspector.css"],
+    css: ["./inspector.css", "./inject.css"],
 }
 export const getStyle = () => {
     const style = window.document.createElement('style');

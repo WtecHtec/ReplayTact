@@ -1,19 +1,18 @@
 import React, { useEffect } from 'react'
 import { Command } from 'cmdk'
 import { message } from 'antd';
-import { searchReplayText } from '~api'
+import { searchReplayDatas } from '~api'
 import { getDomain } from '~uitls'
 import TextSvg from 'data-base64:~assets/text.svg'
 import ActionSvg from 'data-base64:~assets/action.svg'
 const domain = getDomain()
 let cacheEl = null
 export default function CmdkLauncher() {
-    const [messageApi, contextHolder] = message.useMessage();
+    const [_, contextHolder] = message.useMessage();
     const [open, setOpen] = React.useState(false)
     const [replayDatas, setReplayDatas] = React.useState([])
     const getReplayDatas = async () => {
-        const datas = await searchReplayText(domain)
-        console.log('getReplayDatas---', datas)
+        const datas = await searchReplayDatas(domain)
         setReplayDatas(datas as any)
     }
     useEffect(() => {
@@ -42,8 +41,7 @@ export default function CmdkLauncher() {
     }, [open])
 
     const handleEventText = (data) => {
-        
-        if (cacheEl.type === 'input' || cacheEl.type === 'textarea') {
+        if (cacheEl.tagName  && cacheEl.tagName.toLowerCase() === 'input' || cacheEl.tagName.toLowerCase === 'textarea') {
             cacheEl.value = data
             message.info('处理完成！')
         } else {
@@ -86,9 +84,6 @@ export default function CmdkLauncher() {
                                 </div>
                             </Command.Item>)
                         }
-                        {/* <Command.Item>b</Command.Item>
-                        <Command.Item>c</Command.Item>
-                        <Command.Item>Apple</Command.Item> */}
                     </Command.List>
                 </Command>
                     : null

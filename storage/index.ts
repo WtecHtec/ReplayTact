@@ -15,6 +15,5 @@ export function getReplayText() {
 }
 export async function searchReplayText(domain) {
    let datas = await storage.get(REPLAT_DATA)
-   console.log('bg---', datas)
    return Array.isArray(datas) ? datas.filter(item => item.domain === domain) : []
 }

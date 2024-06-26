@@ -1,11 +1,13 @@
 import React, { useRef, useState } from "react";
 import { useEffect } from "react"
-import { Drawer, Button, Form, Input, Select, Space } from 'antd';
+import { Drawer, Button, Form, Input, Select, Space, message } from 'antd';
 import ReactFlow, { ReactFlowProvider, Controls,  useNodesState, useEdgesState, } from "react-flow-renderer";
 import PlusEdge from "./plusedge";
 import EventManager from "~eventmanager";
 import useInspector from "~hooks/useInspector";
-import { uuid } from "~uitls";
+import { getDomain, uuid } from "~uitls";
+import SaveDialog from './savedialog';
+import { saveReplayAction } from "~api";
 
 const MOVE_Y = 100
 const { Option } = Select;
@@ -52,11 +54,25 @@ export default function ActionEditor() {
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
     const [currentFrom, setCurrentFrom] = useState({});
     const flowContainerRef = useRef(null)
+    const [isMoadalOpen, setIsMoadalOpen] = React.useState(false)
     const currentObj = useRef({
         id: '',
         edge: null
     })
     useEffect(() => {
+        // 初始化 临时数据
+        const flowData = localStorage.getItem('replayflow') || ''
+        if (flowData) { 
+            try {
+                const { nodes, edges } = JSON.parse(flowData)
+                if (Array.isArray(nodes) && Array.isArray(edges)) {
+                    setNodes(nodes)
+                    setEdges(edges)
+                }
+            } catch (error) {
+                console.log('初始化异常', error)
+            }
+        }
         const handle = (message) => {
             const { action } = message
             if (action === 'ReplayAction') {
@@ -68,6 +84,23 @@ export default function ActionEditor() {
             chrome.runtime.onMessage.removeListener(handle)
         }
     }, [])
+
+
+    useEffect(() => {
+        // 缓存临时数据 
+        if (!open && reactFlowInstanceRef.current) {
+            const flowData = reactFlowInstanceRef.current.toObject()
+            try {
+                const strFlowData = JSON.stringify(flowData)
+                if (strFlowData) {
+                    localStorage.setItem('replayflow', strFlowData)
+                }
+            } catch (error) {
+                console.log('存储异常', error)
+            }
+        }
+    }, [open])
+
     useEffect(() => {
         const handleEvent = (data) => {
             console.log('Event received:', data);
@@ -91,7 +124,6 @@ export default function ActionEditor() {
     }, [edges]);
 
     useEffect(() => {
-        console.log('xPath----', xPath, nodes, edges, currentObj.current)
         const { edge } = currentObj.current || {}
         if (xPath && edge && reactFlowInstanceRef.current) {
             setOpen(true)
@@ -131,7 +163,7 @@ export default function ActionEditor() {
         setOpen(false)
     }
     const onInit = (reactFlowInstance) => {
-        reactFlowInstance.setViewport({ x: '50%', y: '50%', zoom: 0.7 });
+        reactFlowInstance.setViewport({ x: 200, y: 50, zoom: 0.6 });
         reactFlowInstanceRef.current = reactFlowInstance;
     }
     const onNodeClick = (_, node) => {
@@ -147,6 +179,31 @@ export default function ActionEditor() {
         console.log(values);
     };
 
+    const handelReset = () => {
+        setNodes(initialNodes)
+        setEdges(initialEdges)
+    }
+
+    /**
+     *  保存
+     */
+    const handleSaveAction = async (values) => {
+        if (nodes && nodes.length <= 2) {
+            message.warning('请编排action')
+            return
+        }
+        const domain = getDomain()
+        const id = uuid()
+        const flowDatas = reactFlowInstanceRef.current.toObject()
+        await saveReplayAction({ ...values, datas: flowDatas, domain, id, type: 'action'  })
+        setIsMoadalOpen(false)
+    }
+    /**
+     *  打开保存窗
+     */
+    const handleOpenSave = () => {
+        setIsMoadalOpen(true)
+    }
     return <>
         <Drawer
             title="Action Editor"
@@ -156,6 +213,14 @@ export default function ActionEditor() {
             zIndex={99}
             open={open}>
             <div ref={flowContainerRef} className="reactflow-container" style={{ height: '100%' }}>
+                <div className="reactflow-header">
+                        <Button type="default" onClick={handleOpenSave}>
+                            SAVE
+                        </Button>
+                        <Button type="default" onClick={handelReset}>
+                            RESET
+                        </Button>
+                </div>
                 <ReactFlowProvider>
                     <ReactFlow
                         snapToGrid={true}
@@ -209,5 +274,6 @@ export default function ActionEditor() {
                 </Drawer>
             </div>
         </Drawer>
+        <SaveDialog title="Save Replay Action" modalOpen={isMoadalOpen} onSave={handleSaveAction}></SaveDialog>
     </>
 }
