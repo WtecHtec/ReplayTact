@@ -63,7 +63,7 @@ export default function PlusEdge({
                 className="edgebutton-foreignobject"
                 requiredExtensions="http://www.w3.org/1999/xhtml"
             >
-                <body>
+                <div className="edge-button-div" >
 
                     <Dropdown menu={{ items, onClick: ({key}) => {onEdgeClick(key, id)}  }} trigger={['click']} >
                         <button style={{
@@ -81,7 +81,7 @@ export default function PlusEdge({
                     </Dropdown>
 
 
-                </body>
+                </div>
             </foreignObject>
         </>
     );

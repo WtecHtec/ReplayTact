@@ -1,3 +1,5 @@
+import { runActions } from "~api"
+import { uuid } from "~uitls"
 
 function getDom(selector, timeout = 500, frequency = 20) {
     let current = 0
@@ -113,15 +115,18 @@ const HANDEL_TYPE_EVENT = {
     'keydownevent': handleKeyDownEvent,
 }
 
-async function runAction(nodes, edges) {
+async function runAction(nodes, edges, startSource = 'start', taskId = '') {
     if (!Array.isArray(nodes) || !Array.isArray(edges)) return
-    const startSource = 'start'
+
     const endId = 'end'
     return new  Promise(async (resolve) => {
         // 单个链表
         let currentEdge = edges.find(item => item.source === startSource)
-        console.log('currentEdge', currentEdge)
         if (!currentEdge) return
+				if (startSource === 'start') {
+					taskId = uuid()
+					await	runActions(taskId,  currentEdge.target, 1, { nodes, edges }, new Date().getTime())
+				}
         let currentNode = nodes.find(item => item.id === currentEdge.target)
         console.log('currentNode', currentNode)
         let status = 1
@@ -130,14 +135,17 @@ async function runAction(nodes, edges) {
             console.log('currentNode loop', currentNode)
             const { data, id } = currentNode
             if (id === endId) {
+								await runActions(taskId,  currentEdge.target, 0, { nodes, edges })
                 resolve(1)
                 return
             }
             const { handleType } = data
             if (typeof HANDEL_TYPE_EVENT[handleType] === 'function') {
+							  await runActions(taskId,  currentEdge.target, 1, { nodes, edges }, new Date().getTime())
                 // 1: 正常  -1: 未找到DOM 0: 处理失败
                 status = await  HANDEL_TYPE_EVENT[handleType](data)
                 if ([0, -1].includes(status)) {
+										await runActions(taskId,  currentEdge.target, -1, { nodes, edges })
                     resolve(status)
                     break
                 } 

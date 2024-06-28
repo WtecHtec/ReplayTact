@@ -6,6 +6,7 @@ import { getDomain } from '~uitls'
 import runAction from '~runactions';
 import TextSvg from 'data-base64:~assets/text.svg'
 import ActionSvg from 'data-base64:~assets/action.svg'
+import { BG_RUN_ACTION } from '~actions/config';
 // import TestAction from './test'
 const domain = getDomain()
 let cacheEl = null
@@ -19,15 +20,23 @@ export default function CmdkLauncher() {
         setReplayDatas(datas)
     }
     useEffect(() => {
-        const handle = (message) => {
-            const { action } = message
+        const handle = async (message) => {
+            const { action, datas } = message
             if (action === 'active_extention_launcher') {
                 setOpen(!open)
                 if (!open) {
                     cacheEl = document.activeElement as any
                     getReplayDatas()
                 }
-            }
+            } else if (action === BG_RUN_ACTION) {
+								const status = await runAction(datas.flowData.nodes, datas.flowData.edges, datas.nextId, datas.taskId)
+								console.log('status---', status)
+								if (status === -1) {
+										message.warning('没有找到对应DOM')
+								} else if (status === 0) {
+										message.error('处理失败')
+								}
+						}
         }
         const handleEscape = (e) => {
             if (e.key === 'Escape') {

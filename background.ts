@@ -1,5 +1,7 @@
 import { ACTICON_MAP } from "~actions";
-
+import { BG_RUN_ACTION } from "~actions/config";
+import GlobalState from "~bgglobalstate";
+const MAX_WAIT_TIME = 4 * 1000
 /**
  *  注册鼠标右击事件
  */
@@ -72,6 +74,30 @@ function bindCommand() {
     });
 }
 
+
+function bindTabUpdate() {
+    chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+				const actions = GlobalState.instance.get('action') || []
+				// 刷新时间
+				const actionIdx = actions.findIndex(item => (item.tabId === tabId || item.taskId === tab.openerTabId) && item.status === 1)
+				if (actionIdx > -1) {
+					const reashTimeAction =  { ...actions[actionIdx], time:  new Date().getTime()}
+					actions.splice(actionIdx, 1, reashTimeAction)
+				}
+        if (changeInfo.status === 'complete') {
+						const action = actions.find(item => item.tabId === tabId && item.status === 1 && new Date().getTime() - item.time < MAX_WAIT_TIME )
+            console.log('tabId:', actions, tabId, changeInfo, tab)
+						if (action) {
+							chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+								chrome.tabs.sendMessage(tabs[0].id, { action: BG_RUN_ACTION, datas: action }, function (response) {
+										console.log(response?.result);
+								});
+							});
+						}
+        }
+    })
+}
 bindOnMessage()
 bindContextMenu()
 bindCommand()
+bindTabUpdate()
