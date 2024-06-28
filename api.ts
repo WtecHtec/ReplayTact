@@ -1,4 +1,4 @@
-import { SAVE_REPLAY_TEXT, SEARCH_REPLAY_DATAS, RUN_ACTIONS } from "~actions/config";
+import { SAVE_REPLAY_TEXT, SEARCH_REPLAY_DATAS, RUN_ACTIONS, SAVE_TEMPORARY_DATA, GET_TEMPORARY_DATA } from "~actions/config";
 const request = (sendData, fn = null) => {
     return new Promise((resolve) => {
         console.log('requst---', sendData)
@@ -31,4 +31,13 @@ export async function saveReplayAction(fromData) {
 
 export async function runActions(taskId, nextId, status, flowData, time = 0) {
 	await request({ action: RUN_ACTIONS, datas: { taskId, nextId, status, flowData, time },  })
+}
+
+
+export async function saveTemporaryData(data) {
+    await request({ action: SAVE_TEMPORARY_DATA, datas: { ...data } })
+}
+
+export async function getTemporaryData() {
+    return await request({ action: GET_TEMPORARY_DATA })
 }

@@ -24,7 +24,7 @@ function bindContextMenu() {
         id: 'ReplayAction',
         title: 'Replay Action',
         parentId: 'ReplayTact', // 设置为顶级菜单项的ID来模拟父子关系  
-        contexts: ['page','selection'],
+        contexts: ['page', 'selection'],
     });
 
     chrome.contextMenus.onClicked.addListener(function (info, tab) {
@@ -77,23 +77,36 @@ function bindCommand() {
 
 function bindTabUpdate() {
     chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-				const actions = GlobalState.instance.get('action') || []
-				// 刷新时间
-				const actionIdx = actions.findIndex(item => (item.tabId === tabId || item.taskId === tab.openerTabId) && item.status === 1)
-				if (actionIdx > -1) {
-					const reashTimeAction =  { ...actions[actionIdx], time:  new Date().getTime()}
-					actions.splice(actionIdx, 1, reashTimeAction)
-				}
+       
+        const actions = GlobalState.instance.get('action') || []
+        // 刷新时间
+        const actionIdx = actions.findIndex(item => (item.tabId === tabId || item.taskId === tab.openerTabId) && item.status === 1)
+        if (actionIdx > -1) {
+            const reashTimeAction = { ...actions[actionIdx], time: new Date().getTime() }
+            actions.splice(actionIdx, 1, reashTimeAction)
+        }
         if (changeInfo.status === 'complete') {
-						const action = actions.find(item => item.tabId === tabId && item.status === 1 && new Date().getTime() - item.time < MAX_WAIT_TIME )
-            console.log('tabId:', actions, tabId, changeInfo, tab)
-						if (action) {
-							chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-								chrome.tabs.sendMessage(tabs[0].id, { action: BG_RUN_ACTION, datas: action }, function (response) {
-										console.log(response?.result);
-								});
-							});
-						}
+            const action = actions.find(item => {
+                const modTime = new Date().getTime() - item.time 
+                console.log('item.taskId === tab.openerTabId', item.tabId , tabId, item.status , modTime,tab.openerTabId)
+                if (item.tabId === tab.openerTabId) {
+                    return item.status === 1 && modTime < 30 * 1000
+                }
+                return (item.tabId === tabId || item.tabId === tab.openerTabId) && item.status === 1 && modTime < MAX_WAIT_TIME
+            } )
+            // console.log('tabId', tabId, 'changeInfo', changeInfo, 'tab', tab, 'action', actions, 'action', action )
+            console.log('item.taskId === tab.openerTabId', action)
+            if (action) {
+                chrome.tabs.sendMessage(tabId, { action: BG_RUN_ACTION, datas: action }, function (response) {
+                    console.log(response?.result);
+                });
+                // chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+                //     console.log('tab', tabs, 'action', action)
+                // 	chrome.tabs.sendMessage(tabs[0].id, { action: BG_RUN_ACTION, datas: action }, function (response) {
+                // 			console.log(response?.result);
+                // 	});
+                // });
+            }
         }
     })
 }

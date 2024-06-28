@@ -1,5 +1,5 @@
 import { Storage } from "@plasmohq/storage"
-import { REPLAT_DATA } from "./config"
+import { REPLAT_DATA, TEMPORARY_DATA } from "./config"
 const storage = new Storage({
     area: "local"
 })
@@ -16,4 +16,12 @@ export function getReplayText() {
 export async function searchReplayText(domain) {
    let datas = await storage.get(REPLAT_DATA)
    return Array.isArray(datas) ? datas.filter(item => item.domain === domain) : []
+}
+
+export function saveTemporaryData(data) {
+    return storage.set(TEMPORARY_DATA, data)
+}
+
+export function getTemporaryData() {
+    return storage.get(TEMPORARY_DATA)
 }

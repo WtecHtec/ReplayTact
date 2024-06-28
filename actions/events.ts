@@ -1,5 +1,5 @@
 import GlobalState from "~bgglobalstate";
-import { saveReplayText, searchReplayText } from "~storage";
+import { getTemporaryData, saveReplayText, saveTemporaryData, searchReplayText } from "~storage";
 
 export async function handleSaveReplayText(message) {
     const { request, sendResponse } = message
@@ -36,4 +36,19 @@ export async function handleRunActions(message) {
 	}
 	const result = GlobalState.instance.set('action', actionData)
 	sendResponse({ result });
+}
+
+
+
+export async function handelSaveTemproaryData(message) {
+	const { request, sendResponse } = message
+	const { datas } = request
+    await saveTemporaryData(datas)
+	sendResponse({ result: true });
+}
+
+export async function handelGetTemproaryData(message) {
+	const { sendResponse } = message
+    const datas = await getTemporaryData()
+	sendResponse({ datas });
 }

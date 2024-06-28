@@ -1,13 +1,14 @@
 import { runActions } from "~api"
 import { uuid } from "~uitls"
 
-function getDom(selector, timeout = 500, frequency = 20) {
+function getDom(selector, timeout = 1000, frequency = 60) {
     let current = 0
     return new  Promise((resolve) => {
         const findEl = () => {
             current = current + 1
             console.log('current --- selector', selector, current)
-            const elDom = document.querySelector(selector)
+            // const elDom = document.querySelector(selector)
+            const elDom = document.evaluate(selector, document).iterateNext()
             if (elDom) {
                 resolve(elDom)
                 return
@@ -128,29 +129,27 @@ async function runAction(nodes, edges, startSource = 'start', taskId = '') {
 					await	runActions(taskId,  currentEdge.target, 1, { nodes, edges }, new Date().getTime())
 				}
         let currentNode = nodes.find(item => item.id === currentEdge.target)
-        console.log('currentNode', currentNode)
         let status = 1
         while(currentEdge && currentNode) {
-            console.log('currentEdge loop', currentEdge)
-            console.log('currentNode loop', currentNode)
             const { data, id } = currentNode
             if (id === endId) {
-								await runActions(taskId,  currentEdge.target, 0, { nodes, edges })
+					await runActions(taskId,  currentEdge.target, 0, { nodes, edges })
                 resolve(1)
                 return
             }
             const { handleType } = data
             if (typeof HANDEL_TYPE_EVENT[handleType] === 'function') {
-							  await runActions(taskId,  currentEdge.target, 1, { nodes, edges }, new Date().getTime())
+							//   await runActions(taskId,  currentEdge.target, 1, { nodes, edges }, new Date().getTime())
                 // 1: 正常  -1: 未找到DOM 0: 处理失败
                 status = await  HANDEL_TYPE_EVENT[handleType](data)
                 if ([0, -1].includes(status)) {
-										await runActions(taskId,  currentEdge.target, -1, { nodes, edges })
+					await runActions(taskId,  currentEdge.target, -1, { nodes, edges })
                     resolve(status)
                     break
                 } 
             }
             await delay(1000)
+            await runActions(taskId,  currentEdge.target, 1, { nodes, edges }, new Date().getTime())
             currentEdge = edges.find(item => item.source === currentEdge.target)
             if (currentEdge) {
                 currentNode = nodes.find(item => item.id === currentEdge.target)

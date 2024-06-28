@@ -7,7 +7,7 @@ import EventManager from "~eventmanager";
 import useInspector from "~hooks/useInspector";
 import { getDomain, uuid } from "~uitls";
 import SaveDialog from './savedialog';
-import { saveReplayAction } from "~api";
+import { getTemporaryData, saveReplayAction, saveTemporaryData } from "~api";
 import runAction from "~runactions";
 
 const MOVE_Y = 100
@@ -46,6 +46,7 @@ const edgeTypes: any = {
 };
 
 export default function ActionEditor() {
+    const [_, contextHolder] = message.useMessage();
     const [form] = Form.useForm();
     const [xPath, updateStatus, refresh] = useInspector()
     const reactFlowInstanceRef = useRef(null)
@@ -61,22 +62,24 @@ export default function ActionEditor() {
         edge: null
     })
     useEffect(() => {
-        // 初始化 临时数据
-        const flowData = localStorage.getItem('replayflow') || ''
-        if (flowData) { 
-            try {
-                const { nodes, edges } = JSON.parse(flowData)
-                if (Array.isArray(nodes) && Array.isArray(edges)) {
-                    setNodes(nodes)
-                    setEdges(edges)
-                }
-            } catch (error) {
-                console.log('初始化异常', error)
-            }
-        }
-        const handle = (message) => {
+       
+        const handle = async (message) => {
             const { action } = message
             if (action === 'ReplayAction') {
+
+                 // 初始化 临时数据
+                const { datas } = await getTemporaryData() as any
+                if (datas) { 
+                    try {
+                        const { nodes, edges } = datas
+                        if (Array.isArray(nodes) && Array.isArray(edges)) {
+                            setNodes(nodes)
+                            setEdges(edges)
+                        }
+                    } catch (error) {
+                        console.log('初始化异常', error)
+                    }
+                }
                 setOpen(true)
             }
         }
@@ -91,15 +94,7 @@ export default function ActionEditor() {
         // 缓存临时数据 
         if (!open && reactFlowInstanceRef.current) {
             const flowData = reactFlowInstanceRef.current.toObject()
-            try {
-                const strFlowData = JSON.stringify(flowData)
-                console.log('strFlowData---', strFlowData)
-                if (strFlowData) {
-                    localStorage.setItem('replayflow', strFlowData)
-                }
-            } catch (error) {
-                console.log('存储异常', error)
-            }
+            saveTemporaryData(flowData)
         }
     }, [open])
 
@@ -266,6 +261,7 @@ export default function ActionEditor() {
 			}
 		}
     return <>
+        {contextHolder}
         <Drawer
             title="Action Editor"
             onClose={onClose}

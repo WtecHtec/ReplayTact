@@ -76,8 +76,8 @@ function useInspector() {
         if (optRef.current.status) {
             e.preventDefault()
             e.stopPropagation()
-            // const currentXpath = getXpath(currentTarget, true)
-            const currentXpath = finder(currentTarget)
+            const currentXpath = getXpath(currentTarget, true)
+            // const currentXpath = finder(currentTarget)
             setXPath(currentXpath)
             _remove()
             setRefresh(Math.random())
