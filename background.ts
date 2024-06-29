@@ -74,10 +74,16 @@ function bindCommand() {
     });
 }
 
+function delay(time) {
+		return new  Promise((resolve) => {
+				setTimeout(() => {
+						resolve(1)
+				}, time)
+		})
+}
 
 function bindTabUpdate() {
-    chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-       
+    chrome.tabs.onUpdated.addListener( async (tabId, changeInfo, tab) => {
         const actions = GlobalState.instance.get('action') || []
         // 刷新时间
         const actionIdx = actions.findIndex(item => (item.tabId === tabId || item.taskId === tab.openerTabId) && item.status === 1)
@@ -86,16 +92,18 @@ function bindTabUpdate() {
             actions.splice(actionIdx, 1, reashTimeAction)
         }
         if (changeInfo.status === 'complete') {
-            const action = actions.find(item => {
+						// await delay(2000)
+            let action = actions.find(item => {
                 const modTime = new Date().getTime() - item.time 
-                console.log('item.taskId === tab.openerTabId', item.tabId , tabId, item.status , modTime,tab.openerTabId)
+                // console.log('item.taskId === tab.openerTabId', item.tabId , tabId, item.status , modTime,tab.openerTabId)
                 if (item.tabId === tab.openerTabId) {
-                    return item.status === 1 && modTime < 30 * 1000
+                    return item.status === 1  &&  modTime < 30 * 1000
                 }
                 return (item.tabId === tabId || item.tabId === tab.openerTabId) && item.status === 1 && modTime < MAX_WAIT_TIME
             } )
             // console.log('tabId', tabId, 'changeInfo', changeInfo, 'tab', tab, 'action', actions, 'action', action )
             console.log('item.taskId === tab.openerTabId', action)
+				
             if (action) {
                 chrome.tabs.sendMessage(tabId, { action: BG_RUN_ACTION, datas: action }, function (response) {
                     console.log(response?.result);
@@ -106,7 +114,19 @@ function bindTabUpdate() {
                 // 			console.log(response?.result);
                 // 	});
                 // });
-            }
+            } else {
+							const openNewTabDatas = GlobalState.instance.get('openNewTab') || []
+							console.log('openNewTabDatas---', openNewTabDatas)
+							const tabActionIdx = openNewTabDatas.findIndex(item => item.tabId === tabId)
+							if (tabActionIdx > -1) {
+								chrome.tabs.sendMessage(tabId, { action: BG_RUN_ACTION, datas: openNewTabDatas[tabActionIdx].action }, function (response) {
+									console.log(response?.result);
+									openNewTabDatas.splice(tabActionIdx, 1)
+									GlobalState.instance.set('openNewTab', openNewTabDatas)
+								});
+							
+							}
+						}
         }
     })
 }

@@ -1,4 +1,4 @@
-import { runActions } from "~api"
+import { openNewTab, runActions } from "~api"
 import { uuid } from "~uitls"
 
 function getDom(selector, timeout = 1000, frequency = 60) {
@@ -47,7 +47,7 @@ async function handleClick(data) {
                     'cancelable': true
                 });
                 el.dispatchEvent(event);
-                // el.click()
+                el.click()
             })
         } catch (error) {
             return 0
@@ -118,15 +118,24 @@ const HANDEL_TYPE_EVENT = {
 
 async function runAction(nodes, edges, startSource = 'start', taskId = '') {
     if (!Array.isArray(nodes) || !Array.isArray(edges)) return
-
+	   const cpNode = JSON.parse(JSON.stringify(nodes))
     const endId = 'end'
     return new  Promise(async (resolve) => {
         // 单个链表
         let currentEdge = edges.find(item => item.source === startSource)
+				
         if (!currentEdge) return
 				if (startSource === 'start') {
 					taskId = uuid()
-					await	runActions(taskId,  currentEdge.target, 1, { nodes, edges }, new Date().getTime())
+					// 新开页面
+					let currentNode = cpNode.find(item => item.id === startSource)
+					if (currentNode.data.newtab === '1') {
+						currentNode.data.newtab = '0'
+						await	openNewTab(taskId,  { nodes: cpNode, edges }, currentNode.data.newtaburl, 'start', 1, new Date().getTime())
+						return
+					} else {
+						await	runActions(taskId,  currentEdge.target, 1, { nodes, edges }, new Date().getTime())
+					}
 				}
         let currentNode = nodes.find(item => item.id === currentEdge.target)
         let status = 1

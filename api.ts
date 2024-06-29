@@ -1,4 +1,4 @@
-import { SAVE_REPLAY_TEXT, SEARCH_REPLAY_DATAS, RUN_ACTIONS, SAVE_TEMPORARY_DATA, GET_TEMPORARY_DATA } from "~actions/config";
+import { SAVE_REPLAY_TEXT, SEARCH_REPLAY_DATAS, RUN_ACTIONS, SAVE_TEMPORARY_DATA, GET_TEMPORARY_DATA, OPEN_NEW_TAB } from "~actions/config";
 const request = (sendData, fn = null) => {
     return new Promise((resolve) => {
         console.log('requst---', sendData)
@@ -40,4 +40,8 @@ export async function saveTemporaryData(data) {
 
 export async function getTemporaryData() {
     return await request({ action: GET_TEMPORARY_DATA })
+}
+
+export async function openNewTab( taskId, flowData, newTabUrl, nextId, status, time = 0) {
+		return await request({ action: OPEN_NEW_TAB, datas: { flowData, newTabUrl, nextId, status,  taskId, time } })
 }
