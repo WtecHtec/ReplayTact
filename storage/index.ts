@@ -15,7 +15,9 @@ export function getReplayText() {
 }
 export async function searchReplayText(domain) {
    let datas = await storage.get(REPLAT_DATA)
-   return Array.isArray(datas) ? datas.filter(item => item.domain === domain) : []
+	 let filterDatas = Array.isArray(datas) ?  datas.filter(item => item.domain === domain) : []
+	 const setDatas = new Set([...filterDatas, ...( Array.isArray(datas) ? datas : [])])
+   return [...setDatas]
 }
 
 export function saveTemporaryData(data) {
