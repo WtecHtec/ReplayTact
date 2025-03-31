@@ -1,9 +1,15 @@
 import { openNewTab, runActions } from "~api"
+import { fakerStrategies } from "~faker/config"
 import { uuid } from "~uitls"
+import { Faker, es, zh_CN } from '@faker-js/faker';
 
+const LocaleMap = {
+    'es': es,
+    'zh_CN': zh_CN,
+}
 function getDom(selector, timeout = 1000, frequency = 60) {
     let current = 0
-    return new  Promise((resolve) => {
+    return new Promise((resolve) => {
         const findEl = () => {
             current = current + 1
             console.log('current --- selector', selector, current)
@@ -13,7 +19,7 @@ function getDom(selector, timeout = 1000, frequency = 60) {
                 resolve(elDom)
                 return
             }
-            if (current > frequency) { 
+            if (current > frequency) {
                 console.log(`重复${frequency}次,没有找到`)
                 resolve('')
                 return
@@ -21,7 +27,7 @@ function getDom(selector, timeout = 1000, frequency = 60) {
             setTimeout(() => {
                 findEl()
             }, timeout)
-        } 
+        }
         findEl()
     })
 }
@@ -58,14 +64,32 @@ async function handleClick(data) {
 }
 
 async function handleInput(data) {
-    const { xPath, inputValue } = data
+    const { xPath, inputValue, useFaker, fakerType, fakerLocale } = data
     const el = await getDom(xPath) as any;
     if (el) {
         try {
             el.focus()
             await requestAnimationFrameFn(() => {
                 console.log('inputValue', inputValue)
-                el.value = inputValue
+                const generateFakerData = fakerStrategies[fakerType].generate
+                const argtype = fakerStrategies[fakerType].argtype
+
+                let value = inputValue
+
+                if (useFaker && typeof generateFakerData === 'function') {
+                    let arg = inputValue
+                    if (argtype === 'array') {
+                        arg = inputValue.split(',').map(item => item.trim())
+                        console.log('handleInput arg ====', arg)
+                    }
+                    const customFaker = new Faker({ locale: [LocaleMap[fakerLocale || 'es']] });
+                    value = useFaker && typeof generateFakerData === 'function'
+                        ? generateFakerData(customFaker, arg)
+                        : inputValue; // 根据配置生成数据或使用默认值
+                }
+
+                console.log('handleInput value====', value)
+                el.value = value
                 var event = new InputEvent('input', {
                     bubbles: true,
                     cancelable: true,
@@ -82,7 +106,7 @@ async function handleInput(data) {
 }
 
 async function delay(time) {
-    return new  Promise((resolve) => {
+    return new Promise((resolve) => {
         setTimeout(() => {
             resolve(1)
         }, time)
@@ -96,8 +120,8 @@ async function handleKeyDownEvent(data) {
         try {
             el.focus()
             await requestAnimationFrameFn(() => {
-                el.dispatchEvent(new KeyboardEvent('keydown', { 
-                    keyCode: Number(inputValue) ,
+                el.dispatchEvent(new KeyboardEvent('keydown', {
+                    keyCode: Number(inputValue),
                     bubbles: true,
                     cancelable: true
                 }))
@@ -118,47 +142,47 @@ const HANDEL_TYPE_EVENT = {
 
 async function runAction(nodes, edges, startSource = 'start', taskId = '') {
     if (!Array.isArray(nodes) || !Array.isArray(edges)) return
-	   const cpNode = JSON.parse(JSON.stringify(nodes))
+    const cpNode = JSON.parse(JSON.stringify(nodes))
     const endId = 'end'
-    return new  Promise(async (resolve) => {
+    return new Promise(async (resolve) => {
         // 单个链表
         let currentEdge = edges.find(item => item.source === startSource)
-				
+
         if (!currentEdge) return
-				if (startSource === 'start') {
-					taskId = uuid()
-					// 新开页面
-					let currentNode = cpNode.find(item => item.id === startSource)
-					if (currentNode.data.newtab === '1') {
-						currentNode.data.newtab = '0'
-						await	openNewTab(taskId,  { nodes: cpNode, edges }, currentNode.data.newtaburl, 'start', 1, new Date().getTime())
-						return
-					} else {
-						await	runActions(taskId,  currentEdge.target, 1, { nodes, edges }, new Date().getTime())
-					}
-				}
+        if (startSource === 'start') {
+            taskId = uuid()
+            // 新开页面
+            let currentNode = cpNode.find(item => item.id === startSource)
+            if (currentNode.data.newtab === '1') {
+                currentNode.data.newtab = '0'
+                await openNewTab(taskId, { nodes: cpNode, edges }, currentNode.data.newtaburl, 'start', 1, new Date().getTime())
+                return
+            } else {
+                await runActions(taskId, currentEdge.target, 1, { nodes, edges }, new Date().getTime())
+            }
+        }
         let currentNode = nodes.find(item => item.id === currentEdge.target)
         let status = 1
-        while(currentEdge && currentNode) {
+        while (currentEdge && currentNode) {
             const { data, id } = currentNode
             if (id === endId) {
-					await runActions(taskId,  currentEdge.target, 0, { nodes, edges })
+                await runActions(taskId, currentEdge.target, 0, { nodes, edges })
                 resolve(1)
                 return
             }
             const { handleType } = data
             if (typeof HANDEL_TYPE_EVENT[handleType] === 'function') {
-							//   await runActions(taskId,  currentEdge.target, 1, { nodes, edges }, new Date().getTime())
+                //   await runActions(taskId,  currentEdge.target, 1, { nodes, edges }, new Date().getTime())
                 // 1: 正常  -1: 未找到DOM 0: 处理失败
-                status = await  HANDEL_TYPE_EVENT[handleType](data)
+                status = await HANDEL_TYPE_EVENT[handleType](data)
                 if ([0, -1].includes(status)) {
-					await runActions(taskId,  currentEdge.target, -1, { nodes, edges })
+                    await runActions(taskId, currentEdge.target, -1, { nodes, edges })
                     resolve(status)
                     break
-                } 
+                }
             }
             await delay(1000)
-            await runActions(taskId,  currentEdge.target, 1, { nodes, edges }, new Date().getTime())
+            await runActions(taskId, currentEdge.target, 1, { nodes, edges }, new Date().getTime())
             currentEdge = edges.find(item => item.source === currentEdge.target)
             if (currentEdge) {
                 currentNode = nodes.find(item => item.id === currentEdge.target)

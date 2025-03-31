@@ -1,8 +1,8 @@
 {
-  "name": "ReplayTact",
-  "displayName": "Replay Text Actions",
-  "version": "0.0.2",
-  "description": "chrome extension. Replay Text Actions.",
+  "name": "replay-tact-form-tester",
+  "displayName": "ReplayTact - Form Automation Tester",
+  "version": "0.0.3",
+  "description": "A Chrome extension designed for automating and testing web form interactions. Supports dynamic data generation using Faker.js and replaying user actions for efficient testing.",
   "author": "sr7. <504105925@qq.com>",
   "scripts": {
     "dev": "plasmo dev",
@@ -10,6 +10,7 @@
     "package": "plasmo package"
   },
   "dependencies": {
+    "@faker-js/faker": "^9.6.0",
     "@medv/finder": "^3.2.0",
     "@plasmohq/storage": "^1.11.0",
     "antd": "^5.18.3",
@@ -51,7 +52,6 @@
         },
         "description": "Create Action"
       }
-
     }
   }
 }

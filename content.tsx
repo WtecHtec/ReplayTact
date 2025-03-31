@@ -6,6 +6,9 @@ import antdResetCssText from "data-text:antd/dist/reset.css"
 
 import React, { useEffect } from "react";
 import type { PlasmoCSConfig, PlasmoGetShadowHostId } from 'plasmo';
+
+import { faker } from '@faker-js/faker';
+
 import RelpayText from '~components/replaytext';
 import CmdkLauncher from '~components/cmdklauncher';
 import ActionEditor from '~components/actioneditor';

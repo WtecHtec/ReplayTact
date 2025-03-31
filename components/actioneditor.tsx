@@ -9,6 +9,7 @@ import { getDomain, uuid } from "~uitls";
 import SaveDialog from './savedialog';
 import { getTemporaryData, saveReplayAction, saveTemporaryData } from "~api";
 import runAction from "~runactions";
+import { fakerStrategies } from "~faker/config";
 
 const MOVE_Y = 100
 const { Option } = Select;
@@ -22,7 +23,7 @@ const tailLayout = {
 	wrapperCol: { offset: 8, span: 16 },
 };
 
-
+const { TextArea } = Input;
 
 const initialNodes = [
 	{
@@ -62,6 +63,11 @@ export default function ActionEditor() {
 		edge: null
 	})
 	const [newTab, setNewTab] = useState('0')
+
+	const [showUseFaker, setShowUseFaker] = useState(false)
+	const [showFakerType, setShowFakerType] = useState(false)
+
+	const [desc, setDesc] = useState('')
 	useEffect(() => {
 
 		const handle = async (message) => {
@@ -169,6 +175,16 @@ export default function ActionEditor() {
 		if (['end'].includes(id)) {
 			console.log('return')
 			return
+		}
+		if (data.handleType) {
+			setShowUseFaker(data.handleType === 'input')
+		}
+		if (data.useFaker !== undefined) {
+			setShowFakerType(data.useFaker)
+		}
+		if (data.fakerType) {
+			const { desc } = fakerStrategies[data.fakerType]
+			setDesc(desc)
 		}
 		form.setFieldsValue(data)
 		console.log('node', node)
@@ -307,6 +323,21 @@ export default function ActionEditor() {
 						form={form}
 						name="control-hooks"
 						onFinish={onFinish}
+						onValuesChange={(changedValues) => {
+							console.log("changedValues:::", changedValues)
+							// 当 handleType 改变时，动态触发重新渲染
+							if (changedValues.handleType) {
+								setShowUseFaker(changedValues.handleType === 'input')
+							}
+							if (changedValues.useFaker !== undefined) {
+								setShowFakerType(changedValues.useFaker)
+							}
+							if (changedValues.fakerType) {
+								const { desc } = fakerStrategies[changedValues.fakerType]
+								setDesc(desc)
+							}
+
+						}}
 						style={{ maxWidth: 600 }}
 					> {
 							currentFrom.id === 'start'
@@ -320,26 +351,64 @@ export default function ActionEditor() {
 									{
 										newTab === '1' || currentFrom.data?.newtab === '1'
 											? <Form.Item name="newtaburl" label="新标签URL" rules={[{ required: true, }]}>
-													<Input />
-												</Form.Item>
+												<Input />
+											</Form.Item>
 											: null
 									}
 								</>
-								: <> 
+								: <>
+									{/* 隐藏的 argtype 字段 */}
+									<Form.Item name="argtype" hidden>
+										<Input />
+									</Form.Item>
 									<Form.Item name="label" label="描述" rules={[{ required: true, max: 8 }]}>
 										<Input />
 									</Form.Item>
-										<Form.Item name="handleType" label="操作" rules={[{ required: true }]}>
-											<Select placeholder="请选择操作类型">
-												<Option value="click">点击</Option>
-												<Option value="input">输入</Option>
-												<Option value="keydownevent">键盘按下</Option>
-											</Select>
+									<Form.Item name="handleType" label="操作" rules={[{ required: true }]}>
+										<Select placeholder="请选择操作类型" >
+											<Option value="click">点击</Option>
+											<Option value="input">输入</Option>
+											<Option value="keydownevent">键盘按下[keyCode]</Option>
+										</Select>
+									</Form.Item>
+									{
+										showUseFaker && <Form.Item name="useFaker" label="使用 Faker 模式">
+											<Radio.Group>
+												<Radio value={false}>否</Radio>
+												<Radio value={true}>是</Radio>
+											</Radio.Group>
 										</Form.Item>
-										<Form.Item name="inputValue" label="值">
-											<Input />
-										</Form.Item>
-									</>
+									}
+
+									{showFakerType && (
+										<>
+										<Form.Item name="fakerLocale" label="Faker">
+												<Select placeholder="数据源">
+													<Option  value="es">英文</Option>
+													<Option  value="zh_CN">中文</Option>
+												</Select>
+											</Form.Item>
+											<Form.Item name="fakerType" label="Faker">
+												<Select placeholder="请选择 Faker" onChange={(value) => {
+													console.log("请选择 Faker::", value)
+													const { argtype } = fakerStrategies[value]
+													form.setFieldsValue({ argtype: argtype })
+												}}>
+													{Object.entries(fakerStrategies).map(([key, { label }]) => (
+														<Option key={key} value={key}>{label}</Option>
+													))}
+												</Select>
+											</Form.Item>
+										
+											<p style={{ color: "#999", marginBottom: '24px' }}> {desc} </p>
+										
+										</>
+									)}
+
+									<Form.Item name="inputValue" label="值">
+										<TextArea />
+									</Form.Item>
+								</>
 						}
 
 
