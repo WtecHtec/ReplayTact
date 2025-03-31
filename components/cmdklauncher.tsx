@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
 import { Command } from 'cmdk'
-import { message } from 'antd';
+import { message, Tag } from 'antd';
 import { searchReplayDatas } from '~api'
 import { getDomain } from '~uitls'
 import runAction from '~runactions';
@@ -28,7 +28,8 @@ export default function CmdkLauncher() {
 					cacheEl = document.activeElement as any
 					getReplayDatas()
 				}
-			} else if (action === BG_RUN_ACTION) {
+			}
+			else if (action === BG_RUN_ACTION) {
 				const status = await runAction(datas.flowData.nodes, datas.flowData.edges, datas.nextId, datas.taskId)
 				console.log('status---', status)
 				if (status === -1) {
@@ -86,40 +87,48 @@ export default function CmdkLauncher() {
 			handleEventText(datas)
 		}
 	}
-	return <>
-		{contextHolder}
-		<div className="cmdk-wrapper-container">
-			{
-				open ? <div style={{ backgroundColor: 'white' }}> <Command>
-					<div className="cmdk-header-wrapper">
-						<div className="totips">{domain}</div>
-						<Command.Input />
-					</div>
-					<Command.List>
-						<Command.Empty>No results found.</Command.Empty>
-						{
-							replayDatas.map((item) => <Command.Item key={item.id} value={item.id}
-								onSelect={handelCommandItem}
-								keywords={[item.name, item.description, typeof item.datas === 'string' ? item.datas : JSON.stringify(item.datas)]}>
-								{
-									item.type === 'action'
-										? <img className="cmdk-item-icon" src={ActionSvg} ></img>
-										: <img className="cmdk-item-icon" src={TextSvg}></img>
-								}
-								<div className="cmdk-item-content">
-									<div className="cmdk-item-title">{item.name}</div>
-									<div className="cmdk-item-description">{item.description}</div>
-								</div>
-							</Command.Item>)
-						}
-					</Command.List>
-				</Command>
-					<div style={{ padding: '0 10px' }}> 	<a href='https://github.com/WtecHtec/ReplayTact' target="_blank"> GitHub</a></div>
-				</div>
-					: null
-			}
-
-		</div>
-
-	</>
+	return  <>
+    {contextHolder}
+    <div className="cmdk-wrapper-container">
+        {
+            open ? (
+                <div className="cmdk-container">
+                    <Command>
+                        <div className="cmdk-header">
+                            <Command.Input className="cmdk-input" placeholder="Search..." />
+                        </div>
+                        <Command.List>
+                            <Command.Empty>No results found.</Command.Empty>
+                            {
+                                replayDatas.map((item) => (
+                                    <Command.Item
+                                        key={item.id}
+                                        value={item.id}
+                                        onSelect={handelCommandItem}
+                                        keywords={[item.name, item.description, typeof item.datas === 'string' ? item.datas : JSON.stringify(item.datas)]}
+                                        className="cmdk-item"
+                                    >
+                                        <img
+                                            className="cmdk-item-icon"
+                                            src={item.type === 'action' ? ActionSvg : TextSvg}
+                                            alt={item.type}
+                                        />
+                                        <div className="cmdk-item-content">
+                                            <div className="cmdk-item-title">{item.name}</div>
+                                            <div className="cmdk-item-description">{item.description}</div>
+                                        </div>
+                                    </Command.Item>
+                                ))
+                            }
+                        </Command.List>
+                    </Command>
+                    <div className="cmdk-footer">
+					<Tag color="magenta" className="cmdk-domain-tag custom-tag">{domain}</Tag>
+                        <a href="https://github.com/WtecHtec/ReplayTact" target="_blank" rel="noopener noreferrer">GitHub</a>
+                    </div>
+                </div>
+            ) : null
+        }
+    </div>
+</>
 }

@@ -66,7 +66,7 @@ export default function ActionEditor() {
 
 		const handle = async (message) => {
 			const { action } = message
-			if (action === 'ReplayAction') {
+			if (action === 'ReplayAction' || action === 'create_action') {
 
 				// 初始化 临时数据
 				const { datas } = await getTemporaryData() as any

@@ -41,3 +41,122 @@
     color: #666;
 }
 
+
+
+
+.cmdk-wrapper-container {
+    position: relative;
+    font-family: Arial, sans-serif;
+}
+
+.cmdk-container {
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    max-width: 600px;
+    margin: 20px auto;
+    padding: 16px;
+}
+
+.cmdk-header {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 12px;
+}
+
+.cmdk-domain {
+    font-size: 14px;
+    color: #555;
+    margin-bottom: 8px;
+}
+
+.cmdk-input {
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    outline: none;
+}
+
+.cmdk-input:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 4px rgba(0, 123, 255, 0.5);
+}
+
+.cmdk-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.cmdk-item:hover {
+    background-color: #f0f0f0;
+}
+
+.cmdk-item-icon {
+    width: 24px;
+    height: 24px;
+    margin-right: 12px;
+}
+
+.cmdk-item-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.cmdk-item-title {
+    font-size: 14px;
+    font-weight: bold;
+    color: #333;
+}
+
+.cmdk-item-description {
+    font-size: 12px;
+    color: #666;
+}
+
+.cmdk-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 12px;
+    padding: 8px 0;
+    border-top: 1px solid #ddd;
+}
+
+.cmdk-domain-tag {
+    font-size: 12px;
+    margin-left: 8px;
+}
+
+.cmdk-footer a {
+    color: #007bff;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.cmdk-footer a:hover {
+    text-decoration: underline;
+}
+
+
+.custom-tag {
+    background-color: #2db7f5; /* 自定义背景色 */
+    color: #fff; /* 自定义文字颜色 */
+    border: 1px solid #2db7f5; /* 自定义边框颜色 */
+    border-radius: 4px; /* 圆角 */
+    padding: 2px 8px; /* 内边距 */
+    font-size: 12px; /* 字体大小 */
+    font-weight: 500; /* 字体粗细 */
+    display: inline-block; /* 保证样式一致 */
+    cursor: default; /* 鼠标样式 */
+}
+
+.custom-tag:hover {
+    background-color: #1890ff; /* 悬停时背景色 */
+    color: #fff; /* 悬停时文字颜色 */
+}
