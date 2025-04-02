@@ -2,7 +2,7 @@
   "name": "replay-tact-form-tester",
   "displayName": "ReplayTact - Form Automation Tester",
   "version": "0.0.3",
-  "description": "A Chrome extension designed for automating and testing web form interactions. Supports dynamic data generation using Faker.js and replaying user actions for efficient testing.",
+  "description": "A Chrome extension for automating and testing web forms with Faker.js and replaying user actions efficiently.",
   "author": "sr7. <504105925@qq.com>",
   "scripts": {
     "dev": "plasmo dev",

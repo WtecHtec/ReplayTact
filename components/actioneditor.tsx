@@ -179,12 +179,18 @@ export default function ActionEditor() {
 		if (data.handleType) {
 			setShowUseFaker(data.handleType === 'input')
 		}
-		if (data.useFaker !== undefined) {
-			setShowFakerType(data.useFaker)
-		}
-		if (data.fakerType) {
-			const { desc } = fakerStrategies[data.fakerType]
-			setDesc(desc)
+		if (data.handleType !== 'input') {
+			setShowUseFaker(false)
+			setShowFakerType(false)
+			setDesc('')
+		} else {
+			if (data.useFaker !== undefined) {
+				setShowFakerType(data.useFaker)
+			}
+			if (data.fakerType) {
+				const { desc } = fakerStrategies[data.fakerType]
+				setDesc(desc)
+			}
 		}
 		form.setFieldsValue(data)
 		console.log('node', node)
