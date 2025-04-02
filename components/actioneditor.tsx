@@ -374,6 +374,7 @@ export default function ActionEditor() {
 										<Select placeholder="请选择操作类型" >
 											<Option value="click">点击</Option>
 											<Option value="input">输入</Option>
+											<Option value="select">下拉选择操作</Option>
 											<Option value="keydownevent">键盘按下[keyCode]</Option>
 										</Select>
 									</Form.Item>

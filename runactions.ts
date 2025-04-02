@@ -134,10 +134,50 @@ async function handleKeyDownEvent(data) {
     return -1
 }
 
+
+const waitTime  = (delay) => {
+    return new Promise((resolve) => {
+        setTimeout(() => {
+            resolve(1)
+        }, delay || 1000)
+    })
+}
+const handleSelect = async (data) => {
+    const { xPath, inputValue } = data
+    const el = await getDom(xPath) as any;
+    if (el) {
+        try {
+            el.focus()
+            await requestAnimationFrameFn( async () => {
+                el.dispatchEvent(new KeyboardEvent('keydown', {
+                    keyCode: 13,
+                    bubbles: true,
+                    cancelable: true
+                }))
+                await waitTime(1000)
+                el.dispatchEvent(new KeyboardEvent('keydown', {
+                    keyCode: 13,
+                    bubbles: true,
+                    cancelable: true
+                }))
+                console.log('inputValue 回车2')
+               
+            })
+          
+        } catch (error) {
+            return 0
+        }
+        return 1
+    }
+    return -1
+}
+
+
 const HANDEL_TYPE_EVENT = {
     'click': handleClick,
     'input': handleInput,
     'keydownevent': handleKeyDownEvent,
+    'select': handleSelect
 }
 
 async function runAction(nodes, edges, startSource = 'start', taskId = '') {
