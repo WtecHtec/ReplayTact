@@ -43,6 +43,8 @@ export default function InitContent() {
     const [slashTriggerDomains, setSlashTriggerDomains] = useState([]);
     // 添加一个引用来存储触发弹窗时的输入框元素
     const activeInputRef = useRef(null);
+    // 添加鼠标位置状态
+    const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
     
     // 检查当前域名是否在允许列表中
     const isDomainAllowed = () => {
@@ -104,6 +106,11 @@ export default function InitContent() {
             return true;
         };
         
+        // 监听鼠标移动事件，记录鼠标位置
+        const handleMouseMove = (event) => {
+            setMousePosition({ x: event.clientX, y: event.clientY });
+        };
+        
         // 监听输入事件，检测斜杠输入
         const handleKeyDown = (event) => {
             // 检查是否启用了斜杠触发器，以及当前域名是否允许
@@ -122,11 +129,10 @@ export default function InitContent() {
                 // 保存当前活动的输入框元素
                 activeInputRef.current = event.target;
                 
-                // 获取输入框位置
-                const rect = event.target.getBoundingClientRect();
+                // 使用鼠标位置计算弹窗位置
                 setPopupPosition({
-                    top: rect.bottom + window.scrollY,
-                    left: rect.left + window.scrollX
+                    top: mousePosition.y + window.scrollY,
+                    left: mousePosition.x + window.scrollX
                 });
                 
                 // 显示弹出选择器
@@ -134,57 +140,60 @@ export default function InitContent() {
             }
         };
 
-         // 添加点击输入框事件处理
-    const handleInputClick = (event) => {
-        // 检查是否启用了斜杠触发器，以及当前域名是否允许
-        if (!slashTriggerEnabled || !isDomainAllowed()) return;
-        
-        // 检查点击的是否为输入框或文本区域
-        if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
-            // 检查输入框是否为空，只有在输入框为空时才显示弹窗
-            if (!event.target.value) {
-                if (event.target.hasAttribute('autocomplete')) {
-                    event.target.setAttribute('data-original-autocomplete', event.target.getAttribute('autocomplete'));
+        // 添加点击输入框事件处理
+        const handleInputClick = (event) => {
+            // 检查是否启用了斜杠触发器，以及当前域名是否允许
+            if (!slashTriggerEnabled || !isDomainAllowed()) return;
+            
+            // 检查点击的是否为输入框或文本区域
+            if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
+                // 检查输入框是否为空，只有在输入框为空时才显示弹窗
+                if (!event.target.value) {
+                    if (event.target.hasAttribute('autocomplete')) {
+                        event.target.setAttribute('data-original-autocomplete', event.target.getAttribute('autocomplete'));
+                    }
+                    event.target.setAttribute('autocomplete', 'off');
+                    
+                    // 保存当前活动的输入框元素
+                    activeInputRef.current = event.target;
+                    
+                    // 使用鼠标点击位置计算弹窗位置
+                    setPopupPosition({
+                        top: event.clientY + window.scrollY,
+                        left: event.clientX + window.scrollX
+                    });
+                    
+                    // 显示弹出选择器
+                    setFakerPopupVisible(true);
                 }
-                event.target.setAttribute('autocomplete', 'off');
-                
-                // 保存当前活动的输入框元素
-                activeInputRef.current = event.target;
-                
-                // 获取输入框位置
-                const rect = event.target.getBoundingClientRect();
-                setPopupPosition({
-                    top: rect.bottom + window.scrollY,
-                    left: rect.left + window.scrollX
-                });
-                
-                // 显示弹出选择器
-                setFakerPopupVisible(true);
             }
-        }
-    };
+        };
         
+        // 添加滚动事件处理，更新弹窗位置
+        const handleScroll = () => {
+            if (fakerPopupVisible && activeInputRef.current) {
+                // 在滚动时，使用最后记录的鼠标位置更新弹窗位置
+                setPopupPosition({
+                    top: mousePosition.y + window.scrollY,
+                    left: mousePosition.x + window.scrollX
+                });
+            }
+        };
+        
+        document.addEventListener('mousemove', handleMouseMove);
         chrome.runtime.onMessage.addListener(handleMessage);
         document.addEventListener('keydown', handleKeyDown);
         document.addEventListener('click', handleInputClick);
-        
-        // 向后台脚本发送内容脚本已加载的消息
-        // try {
-        //     chrome.runtime.sendMessage({ action: 'contentScriptReady' }, (response) => {
-        //         if (chrome.runtime.lastError) {
-        //             console.log('发送内容脚本就绪消息失败:', chrome.runtime.lastError);
-        //         }
-        //     });
-        // } catch (error) {
-        //     console.error('发送内容脚本就绪消息失败:', error);
-        // }
+        window.addEventListener('scroll', handleScroll, { passive: true });
         
         return () => {
+            document.removeEventListener('mousemove', handleMouseMove);
             chrome.runtime.onMessage.removeListener(handleMessage);
             document.removeEventListener('keydown', handleKeyDown);
             document.removeEventListener('click', handleInputClick);
+            window.removeEventListener('scroll', handleScroll);
         };
-    }, [slashTriggerEnabled, slashTriggerDomains]);
+    }, [slashTriggerEnabled, slashTriggerDomains, fakerPopupVisible, mousePosition]);
     
     const applyFakerToActiveElement = (fakerType) => {
         const activeElement = document.activeElement;
@@ -208,63 +217,63 @@ export default function InitContent() {
         }
     };
     
-   // 在 handleFakerSelect 函数中添加对默认配置的处理
-const handleFakerSelect = async (config) => {
-    console.log('handleFakerSelect', config);
-    if (!config) return;
-    
-    // 使用保存的输入框元素
-    const targetElement = activeInputRef.current;
-    if (!targetElement) {
-        console.error('没有找到目标输入框');
-        return;
-    }
-    
-    try {
-        // 处理默认配置项
-        if (config.isDefault && config.value) {
-            // 直接使用预生成的值
-            targetElement.value = config.value;
-            targetElement.dispatchEvent(new Event('input', { bubbles: true }));
-            targetElement.focus();
+    // 在 handleFakerSelect 函数中添加对默认配置的处理
+    const handleFakerSelect = async (config) => {
+        console.log('handleFakerSelect', config);
+        if (!config) return;
+        
+        // 使用保存的输入框元素
+        const targetElement = activeInputRef.current;
+        if (!targetElement) {
+            console.error('没有找到目标输入框');
             return;
         }
         
-        // 处理用户自定义配置
-        const userConfigsStr = await storage.get('fakerUserConfigs');
-        if (!userConfigsStr) return;
-        
-        const userConfigs = JSON.parse(userConfigsStr);
-        const selectedConfig = userConfigs.find(c => c.id === config.id);
-        if (!selectedConfig) return;
-        
-        const { fakerType, fakerLocale, args } = selectedConfig;
-        const { Faker } = await import('@faker-js/faker');
-        const { fakerStrategies } = await import('~faker/config');
-        const { LocaleMap } = await import('~runactions');
-        
-        const strategy = fakerStrategies[fakerType];
-        if (!strategy) return;
-        
-        const customFaker = new Faker({ locale: [LocaleMap[fakerLocale || 'zh_CN']] });
-        let parsedArgs = args;
-        
-        if (strategy.argtype === 'array' && args) {
-            parsedArgs = args.split(',').map(item => item.trim());
+        try {
+            // 处理默认配置项
+            if (config.isDefault && config.value) {
+                // 直接使用预生成的值
+                targetElement.value = config.value;
+                targetElement.dispatchEvent(new Event('input', { bubbles: true }));
+                targetElement.focus();
+                return;
+            }
+            
+            // 处理用户自定义配置
+            const userConfigsStr = await storage.get('fakerUserConfigs');
+            if (!userConfigsStr) return;
+            
+            const userConfigs = JSON.parse(userConfigsStr);
+            const selectedConfig = userConfigs.find(c => c.id === config.id);
+            if (!selectedConfig) return;
+            
+            const { fakerType, fakerLocale, args } = selectedConfig;
+            const { Faker } = await import('@faker-js/faker');
+            const { fakerStrategies } = await import('~faker/config');
+            const { LocaleMap } = await import('~runactions');
+            
+            const strategy = fakerStrategies[fakerType];
+            if (!strategy) return;
+            
+            const customFaker = new Faker({ locale: [LocaleMap[fakerLocale || 'zh_CN']] });
+            let parsedArgs = args;
+            
+            if (strategy.argtype === 'array' && args) {
+                parsedArgs = args.split(',').map(item => item.trim());
+            }
+            
+            const value = strategy.generate(customFaker, parsedArgs || []);
+            
+            // 将值设置到保存的输入框元素
+            targetElement.value = value;
+            targetElement.dispatchEvent(new Event('input', { bubbles: true }));
+            
+            // 可选：将焦点重新设置到输入框
+            targetElement.focus();
+        } catch (error) {
+            console.error('应用 Faker 配置失败:', error);
         }
-        
-        const value = strategy.generate(customFaker, parsedArgs || []);
-        
-        // 将值设置到保存的输入框元素
-        targetElement.value = value;
-        targetElement.dispatchEvent(new Event('input', { bubbles: true }));
-        
-        // 可选：将焦点重新设置到输入框
-        targetElement.focus();
-    } catch (error) {
-        console.error('应用 Faker 配置失败:', error);
-    }
-};
+    };
     
     // 保留原来的函数以兼容其他调用
     const applyUserFakerConfig = async (configId) => {

@@ -38,6 +38,45 @@ export default function FakerPopupSelector({ visible, position, onSelect, onClos
   // 合并默认配置和用户配置
   const allConfigs = [...defaultConfigs, ...userConfigs];
 
+  // 计算弹窗位置，确保不超出视口
+  const calculatePosition = () => {
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    
+    // 默认位置 - 在鼠标点击位置右下方
+    let top = position.top;
+    let left = position.left;
+    
+    // 弹窗尺寸
+    const popupWidth = 280;
+    const popupHeight = 300;
+    const margin = 10; // 边距
+    
+    // 检查右边界 - 如果弹窗会超出右边界，则显示在左侧
+    if (left + popupWidth + margin > viewportWidth) {
+      left = Math.max(margin, left - popupWidth);
+    }
+    
+    // 检查底部边界 - 如果弹窗会超出底部，则显示在上方
+    if (top + popupHeight + margin > window.scrollY + viewportHeight) {
+      top = Math.max(window.scrollY + margin, top - popupHeight);
+    }
+    
+    // 确保不会超出顶部
+    if (top < window.scrollY + margin) {
+      top = window.scrollY + margin;
+    }
+    
+    // 确保不会超出左边界
+    if (left < margin) {
+      left = margin;
+    }
+    
+    return { top, left };
+  };
+  
+  const adjustedPosition = calculatePosition();
+
   useEffect(() => {
     if (visible) {
       loadUserConfigs();
@@ -139,9 +178,9 @@ export default function FakerPopupSelector({ visible, position, onSelect, onClos
     <div
       ref={selectorRef}
       style={{
-        position: 'fixed',
-        top: position.top + 'px',
-        left: position.left + 'px',
+        position: 'absolute', // 改为 absolute 而不是 fixed，以便更好地处理滚动
+        top: adjustedPosition.top + 'px',
+        left: adjustedPosition.left + 'px',
         width: '280px',
         maxHeight: '300px',
         backgroundColor: 'white',
