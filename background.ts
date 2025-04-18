@@ -1,15 +1,17 @@
 import { ACTICON_MAP } from "~actions";
 import { BG_RUN_ACTION } from "~actions/config";
 import GlobalState from "~bgglobalstate";
+import { Storage } from '@plasmohq/storage';
 const MAX_WAIT_TIME = 4 * 1000
+const storage = new Storage();
 /**
  *  注册鼠标右击事件
  */
-function bindContextMenu() {
+async function bindContextMenu() {
     const parent = chrome.contextMenus.create({
         title: 'ReplayTact',
         id: 'ReplayTact',
-        contexts: ['page', 'selection'],
+        contexts: ['page', 'selection', 'editable',],
     });
 
     // 创建子菜单【文案】
@@ -27,6 +29,65 @@ function bindContextMenu() {
         contexts: ['page', 'selection'],
     });
 
+    // 添加 Faker 子菜单
+    // const fakerParent = chrome.contextMenus.create({
+    //     id: 'FakerMenu',
+    //     title: 'Faker 生成器',
+    //     parentId: 'ReplayTact',
+    //     contexts: ['page', 'editable', 'selection'],
+    // });
+
+     // 添加常用的 Faker 选项
+     chrome.contextMenus.create({
+        id: 'FakerName',
+        title: '姓名',
+        parentId: 'ReplayTact',
+        contexts: ['editable'],
+    });
+
+    chrome.contextMenus.create({
+        id: 'FakerEmail',
+        title: '邮箱',
+        parentId: 'ReplayTact',
+        contexts: ['page','editable'],
+    });
+
+    chrome.contextMenus.create({
+        id: 'FakerPhone',
+        title: '手机号',
+        parentId: 'ReplayTact',
+        contexts: ['page','editable'],
+    });
+
+    
+
+       // 从存储中读取用户配置并添加到菜单
+       try {
+        const userConfigsStr = await storage.get('fakerUserConfigs');
+        if (userConfigsStr) {
+            const userConfigs = JSON.parse(userConfigsStr);
+            
+            // 为每个用户配置创建菜单项
+            userConfigs.forEach(config => {
+                chrome.contextMenus.create({
+                    id: `FakerUserConfig_${config.id}`,
+                    title: config.name,
+                    parentId: 'ReplayTact',
+                    contexts: ['editable'],
+                });
+            });
+        }
+    } catch (error) {
+        console.error('加载用户配置到菜单失败:', error);
+    }
+
+    chrome.contextMenus.create({
+        id: 'FakerConfig',
+        title: '配置 Faker...',
+        parentId: 'ReplayTact',
+        contexts: ['page','editable'],
+    });
+
     chrome.contextMenus.onClicked.addListener(function (info, tab) {
         switch (info.menuItemId) {
             case 'ReplayText':
@@ -39,8 +100,32 @@ function bindContextMenu() {
                     });
                 });
                 break;
+                case 'FakerName':
+                    case 'FakerEmail':
+                    case 'FakerPhone':
+                    case 'FakerConfig':
+                        chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+                            chrome.tabs.sendMessage(tabs[0].id, { action: info.menuItemId }, function (response) {
+                                console.log(response?.result);
+                            });
+                        });
+                        break;
             default:
                 console.log('---')
+                // 处理用户自定义配置菜单项
+                if (info.menuItemId.startsWith('FakerUserConfig_')) {
+                    const configId = info.menuItemId.replace('FakerUserConfig_', '');
+                    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+                        chrome.tabs.sendMessage(tabs[0].id, { 
+                            action: 'FakerUserConfig', 
+                            configId: configId 
+                        }, function (response) {
+                            console.log(response?.result);
+                        });
+                    });
+                } else {
+                    console.log('未处理的菜单项:', info.menuItemId);
+                }
         }
     });
 }
@@ -52,7 +137,14 @@ function bindOnMessage() {
         // 获取插件列表
         const { action } = request;
         console.log('bg --- request', request)
-        if (typeof ACTICON_MAP[action] === 'function') {
+        if (action === 'reloadExtension') {
+            // 处理重新加载扩展的请求
+            setTimeout(() => {
+                chrome.runtime.reload();
+            }, 1000)
+           
+            sendResponse({ result: 'reloading' });
+        } else   if (typeof ACTICON_MAP[action] === 'function') {
             ACTICON_MAP[action]({ request, sender, sendResponse });
         } else {
             console.log('No found ACTICON_MAP action---->', action);
@@ -130,7 +222,55 @@ function bindTabUpdate() {
         }
     })
 }
-bindOnMessage()
-bindContextMenu()
-bindCommand()
-bindTabUpdate()
+
+
+let userConfigMenuIds = [];
+
+function setupStorageListener() {
+    storage.watch({
+        'fakerUserConfigs': (newValue) => {
+            // 移除之前保存的所有用户配置菜单项
+            userConfigMenuIds.forEach(id => {
+                try {
+                    chrome.contextMenus.remove(id);
+                } catch (error) {
+                    console.error(`移除菜单项 ${id} 失败:`, error);
+                }
+            });
+            
+            // 清空ID数组
+            userConfigMenuIds = [];
+            
+            // 重新添加用户配置菜单项
+            if (newValue) {
+                try {
+                    const userConfigs = JSON.parse(newValue);
+                    userConfigs.forEach(config => {
+                        const menuId = `FakerUserConfig_${config.id}`;
+                        chrome.contextMenus.create({
+                            id: menuId,
+                            title: config.name,
+                            parentId: 'FakerMenu',
+                            contexts: ['editable'],
+                        });
+                        // 保存新创建的菜单项ID
+                        userConfigMenuIds.push(menuId);
+                    });
+                } catch (error) {
+                    console.error('更新用户配置菜单失败:', error);
+                }
+            }
+        }
+    });
+}
+
+// 初始化
+async function init() {
+    await bindContextMenu();
+    // setupStorageListener();
+    bindOnMessage();
+    bindCommand();
+    bindTabUpdate();
+}
+
+init();

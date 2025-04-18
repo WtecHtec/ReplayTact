@@ -3,7 +3,7 @@ import { fakerStrategies } from "~faker/config"
 import { uuid } from "~uitls"
 import { Faker, es, zh_CN } from '@faker-js/faker';
 
-const LocaleMap = {
+export const LocaleMap = {
     'es': es,
     'zh_CN': zh_CN,
 }
