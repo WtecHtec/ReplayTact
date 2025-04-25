@@ -177,13 +177,14 @@ function delay(time) {
 function bindTabUpdate() {
     chrome.tabs.onUpdated.addListener( async (tabId, changeInfo, tab) => {
         const actions = GlobalState.instance.get('action') || []
+        if (!actions.length) return;
         // 刷新时间
         const actionIdx = actions.findIndex(item => (item.tabId === tabId || item.taskId === tab.openerTabId) && item.status === 1)
         if (actionIdx > -1) {
             const reashTimeAction = { ...actions[actionIdx], time: new Date().getTime() }
             actions.splice(actionIdx, 1, reashTimeAction)
         }
-        if (changeInfo.status === 'complete') {
+        if (changeInfo.status === 'complete' && actionIdx > -1) {
 						// await delay(2000)
             let action = actions.find(item => {
                 const modTime = new Date().getTime() - item.time 
