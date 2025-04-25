@@ -1,33 +1,20 @@
-This is a [Plasmo extension](https://docs.plasmo.com/) project bootstrapped with [`plasmo init`](https://www.npmjs.com/package/plasmo).
+# 解决
+1. 支持fakerjs 生成数据输入。
+2. 支持自动化流程编排和执行。
 
-## Getting Started
+# fakerjs 生成数据输入
+1. 点击插件图标配置生效域名。当鼠标点击输入框时，会弹出fakerjs弹窗，点击生成对应数据源。当然你也可以自行去配置。
+2. 在输入框右击并选择“ReplayTact”也可以触发数据生成,配置fakerjs的数据源。
 
-First, run the development server:
+# 自动化流程编排和执行
+1.  在输入框右击并选择“ReplayTact” 下的“Replay Action” 可以创建自动化流程。
+2. 在选择文本鼠标右击“Replay Action” 下的“Replay Test” 会将选择的文本，记录下来。
+# 使用
+前往 [快捷键](chrome://extensions/shortcuts) 设置触发。
+1.  “Active Extension Launcher” 触发执行弹窗，选择触发的事件流程
+2.  “Create Action” 触发执行自动化流程编排。
 
-```bash
-pnpm dev
-# or
-npm run dev
-```
-
-Open your browser and load the appropriate development build. For example, if you are developing for the chrome browser, using manifest v3, use: `build/chrome-mv3-dev`.
-
-You can start editing the popup by modifying `popup.tsx`. It should auto-update as you make changes. To add an options page, simply add a `options.tsx` file to the root of the project, with a react component default exported. Likewise to add a content page, add a `content.ts` file to the root of the project, importing some module and do some logic, then reload the extension on your browser.
-
-For further guidance, [visit our Documentation](https://docs.plasmo.com/)
-
-## Making production build
-
-Run the following:
-
-```bash
-pnpm build
-# or
-npm run build
-```
-
-This should create a production bundle for your extension, ready to be zipped and published to the stores.
-
-## Submit to the webstores
-
-The easiest way to deploy your Plasmo extension is to use the built-in [bpp](https://bpp.browser.market) GitHub action. Prior to using this action however, make sure to build your extension and upload the first version to the store to establish the basic credentials. Then, simply follow [this setup instruction](https://docs.plasmo.com/framework/workflows/submit) and you should be on your way for automated submission!
+# 自动化流程编排
+在弹窗中点击“+”号，选取DOM元素，之后点击流程图中节点，可以配置更多内容。
+1. 支持元素选取并选择操作类型【点击、输入、键盘输入】
+2. 在输入框中支持fakerjs数据源。
