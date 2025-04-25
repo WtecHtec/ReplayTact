@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
 import { Command } from 'cmdk'
-import { message, Tag } from 'antd';
+import { Button, message, Tag } from 'antd';
 import { searchReplayDatas } from '~api'
 import { getDomain } from '~uitls'
 import runAction from '~runactions';
@@ -101,12 +101,14 @@ export default function CmdkLauncher() {
                             <Command.Empty>No results found.</Command.Empty>
                             {
                                 replayDatas.map((item) => (
+									<div style={{ display: 'flex', alignItems: 'center'}}>
                                     <Command.Item
                                         key={item.id}
                                         value={item.id}
                                         onSelect={handelCommandItem}
                                         keywords={[item.name, item.description, typeof item.datas === 'string' ? item.datas : JSON.stringify(item.datas)]}
                                         className="cmdk-item"
+										style={{ flex: 1}}
                                     >
                                         <img
                                             className="cmdk-item-icon"
@@ -118,6 +120,13 @@ export default function CmdkLauncher() {
                                             <div className="cmdk-item-description">{item.description}</div>
                                         </div>
                                     </Command.Item>
+										
+	<Button  type='link' style={{ cursor: 'pointer'}}  onClick={ () => {
+											navigator.clipboard.writeText(JSON.stringify(item))
+											message.info('复制成功！')
+										}}> copy</Button>
+
+										</div>
                                 ))
                             }
                         </Command.List>

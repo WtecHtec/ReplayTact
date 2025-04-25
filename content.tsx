@@ -2,6 +2,7 @@ import cssText from 'data-text:~content.css';
 import cssCmdkText from 'data-text:~cmdk.css';
 import cssInspectorText from 'data-text:~inspector.css';
 import antdResetCssText from "data-text:antd/dist/reset.css"
+import { StyleProvider } from "@ant-design/cssinjs"
 
 import React, { useEffect, useState, useRef } from "react";
 import type { PlasmoCSConfig, PlasmoGetShadowHostId } from 'plasmo';
@@ -332,7 +333,8 @@ export default function InitContent() {
     };
 
     return (
-        <>
+        <> 
+        <StyleProvider container={document.getElementById(HOST_ID).shadowRoot}>
             <ActionEditor></ActionEditor>
             <CmdkLauncher></CmdkLauncher>
             <RelpayText></RelpayText>
@@ -346,6 +348,7 @@ export default function InitContent() {
                 onSelect={handleFakerSelect}
                 onClose={handleClosePopup} // 使用新的关闭处理函数
             />
+        </StyleProvider>
         </>
     )
 }
