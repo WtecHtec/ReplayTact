@@ -334,9 +334,11 @@ export default function InitContent() {
 
     return (
         <> 
-        <StyleProvider container={document.getElementById(HOST_ID).shadowRoot}>
+      
             <ActionEditor></ActionEditor>
-            <CmdkLauncher></CmdkLauncher>
+            <StyleProvider container={document.getElementById(HOST_ID).shadowRoot}>
+             <CmdkLauncher></CmdkLauncher>
+            </StyleProvider>
             <RelpayText></RelpayText>
             <FakerConfigDialog 
                 visible={fakerConfigVisible} 
@@ -348,7 +350,7 @@ export default function InitContent() {
                 onSelect={handleFakerSelect}
                 onClose={handleClosePopup} // 使用新的关闭处理函数
             />
-        </StyleProvider>
+       
         </>
     )
 }
