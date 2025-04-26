@@ -50,23 +50,31 @@ export default function InitContent() {
     const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
     
     // 检查当前域名是否在允许列表中
-    const isDomainAllowed = () => {
+    const isDomainAllowed = async () => {
+        const  domains = await storage.get('slashTriggerDomains') ;
+
+        let slashTriggerDomains =  []
+        try {
+            slashTriggerDomains = JSON.parse(domains)
+        } catch (error) {
+            console.error('加载设置失败:', error);
+        }
+        console.log('slashTriggerDomains', domains)
+       
         // 如果域名列表为空，则允许所有域名
         if (slashTriggerDomains.length === 0) {
-            return true;
+            return false;
         }
         
         const currentHostname = window.location.hostname;
-        return slashTriggerDomains.some(domain => {
+        return slashTriggerDomains?.some(domain => {
             // 检查当前域名是否匹配或是子域名
             return currentHostname === domain || 
                    currentHostname.endsWith('.' + domain);
         });
     };
-    
+
     useEffect(() => {
-        console.log('InitContent')
-        // 从存储中加载设置
         const loadSettings = async () => {
             try {
                 const enabled = await storage.get('slashTriggerEnabled');
@@ -84,6 +92,12 @@ export default function InitContent() {
         };
         
         loadSettings();
+    }, [])
+    
+    useEffect(() => {
+        console.log('InitContent')
+        // 从存储中加载设置
+       
         
         const handleMessage = async (message, sender, sendResponse) => {
             if (message.action === 'FakerConfig') {
@@ -126,39 +140,12 @@ export default function InitContent() {
             setMousePosition({ x: event.clientX, y: event.clientY });
         };
         
-        // 监听输入事件，检测斜杠输入
-        const handleKeyDown = (event) => {
-            // 检查是否启用了斜杠触发器，以及当前域名是否允许
-            if (!slashTriggerEnabled || !isDomainAllowed()) return;
-            
-            if (event.key === '/' && 
-                (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA')) {
-                // 阻止默认行为，不输入斜杠
-                event.preventDefault();
-
-                if (event.target.hasAttribute('autocomplete')) {
-                    event.target.setAttribute('data-original-autocomplete', event.target.getAttribute('autocomplete'));
-                }
-                event.target.setAttribute('autocomplete', 'off');
-                
-                // 保存当前活动的输入框元素
-                activeInputRef.current = event.target;
-                
-                // 使用鼠标位置计算弹窗位置
-                setPopupPosition({
-                    top: mousePosition.y + window.scrollY,
-                    left: mousePosition.x + window.scrollX
-                });
-                
-                // 显示弹出选择器
-                setFakerPopupVisible(true);
-            }
-        };
+   
 
         // 添加点击输入框事件处理
-        const handleInputClick = (event) => {
+        const handleInputClick = async (event) => {
             // 检查是否启用了斜杠触发器，以及当前域名是否允许
-            if (!slashTriggerEnabled || !isDomainAllowed()) return;
+            if (! await isDomainAllowed()) return;
             
             // 检查点击的是否为输入框或文本区域
             if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
@@ -197,14 +184,13 @@ export default function InitContent() {
         
         document.addEventListener('mousemove', handleMouseMove);
         chrome.runtime.onMessage.addListener(handleMessage);
-        document.addEventListener('keydown', handleKeyDown);
+
         document.addEventListener('click', handleInputClick);
         window.addEventListener('scroll', handleScroll, { passive: true });
         
         return () => {
             document.removeEventListener('mousemove', handleMouseMove);
             chrome.runtime.onMessage.removeListener(handleMessage);
-            document.removeEventListener('keydown', handleKeyDown);
             document.removeEventListener('click', handleInputClick);
             window.removeEventListener('scroll', handleScroll);
         };

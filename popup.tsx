@@ -85,7 +85,7 @@ function IndexPopup() {
       <Title level={4}>ReplayTact 设置</Title>
       
       <Divider />
-      
+{/*       
       <div style={{ marginBottom: '16px' }}>
         <Space>
           <Switch 
@@ -101,7 +101,7 @@ function IndexPopup() {
         </div>
       </div>
       
-      <Divider />
+      <Divider /> */}
       
       <div style={{ marginBottom: '16px' }}>
         <Title level={5}>启用域名列表</Title>
