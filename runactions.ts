@@ -1,4 +1,4 @@
-import { openNewTab, runActions } from "~api"
+import { atttachDebugger, detachDebugger, openNewTab, runActions, simulateClickWithDebugger } from "~api"
 import { fakerStrategies } from "~faker/config"
 import { uuid } from "~uitls"
 import { Faker, es, zh_CN } from '@faker-js/faker';
@@ -40,13 +40,13 @@ function requestAnimationFrameFn(fn) {
         })
     })
 }
-async function handleClick(data) {
+async function handleClick(data, tabId) {
     const { xPath } = data
     const el = await getDom(xPath) as any;
     if (el) {
         try {
             el.focus()
-            await requestAnimationFrameFn(() => {
+            await requestAnimationFrameFn(async () => {
                 var event = new MouseEvent('click', {
                     'view': window,
                     'bubbles': true,
@@ -54,6 +54,12 @@ async function handleClick(data) {
                 });
                 el.dispatchEvent(event);
                 el.click()
+
+                const rect = el.getBoundingClientRect();
+                await simulateClickWithDebugger( {
+                    rect,
+                    tabId
+                })
             })
         } catch (error) {
             return 0
@@ -180,10 +186,11 @@ const HANDEL_TYPE_EVENT = {
     'select': handleSelect
 }
 
-async function runAction(nodes, edges, startSource = 'start', taskId = '') {
+async function runAction(nodes, edges, startSource = 'start', taskId = '', tabId = '') {
     if (!Array.isArray(nodes) || !Array.isArray(edges)) return
     const cpNode = JSON.parse(JSON.stringify(nodes))
     const endId = 'end'
+    // let tabId = ''
     return new Promise(async (resolve) => {
         // 单个链表
         let currentEdge = edges.find(item => item.source === startSource)
@@ -198,6 +205,9 @@ async function runAction(nodes, edges, startSource = 'start', taskId = '') {
                 await openNewTab(taskId, { nodes: cpNode, edges }, currentNode.data.newtaburl, 'start', 1, new Date().getTime())
                 return
             } else {
+                const datas  = await atttachDebugger(tabId) as any
+                console.log('atttachDebugger datas', datas)
+                tabId = datas.datas || ''
                 await runActions(taskId, currentEdge.target, 1, { nodes, edges }, new Date().getTime())
             }
         }
@@ -206,7 +216,10 @@ async function runAction(nodes, edges, startSource = 'start', taskId = '') {
         while (currentEdge && currentNode) {
             const { data, id } = currentNode
             if (id === endId) {
+                console.log('endId')
+                await detachDebugger(tabId)
                 await runActions(taskId, currentEdge.target, 0, { nodes, edges })
+               
                 resolve(1)
                 return
             }
@@ -214,7 +227,7 @@ async function runAction(nodes, edges, startSource = 'start', taskId = '') {
             if (typeof HANDEL_TYPE_EVENT[handleType] === 'function') {
                 //   await runActions(taskId,  currentEdge.target, 1, { nodes, edges }, new Date().getTime())
                 // 1: 正常  -1: 未找到DOM 0: 处理失败
-                status = await HANDEL_TYPE_EVENT[handleType](data)
+                status = await HANDEL_TYPE_EVENT[handleType](data, tabId)
                 if ([0, -1].includes(status)) {
                     await runActions(taskId, currentEdge.target, -1, { nodes, edges })
                     resolve(status)

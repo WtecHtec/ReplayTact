@@ -1,5 +1,5 @@
-import { GET_TEMPORARY_DATA, OPEN_NEW_TAB, RUN_ACTIONS, SAVE_REPLAY_TEXT, SAVE_TEMPORARY_DATA, SEARCH_REPLAY_DATAS } from "./config";
-import { handelGetTemproaryData, handelOpenNewTab, handelSaveTemproaryData, handleRunActions, handleSaveReplayText, handleSearchReplay } from "./events";
+import { ATTACH_DEBUGGER, DEBUGGER_CLICK, DETACH_DEBUGGER, GET_TEMPORARY_DATA, OPEN_NEW_TAB, RUN_ACTIONS, SAVE_REPLAY_TEXT, SAVE_TEMPORARY_DATA, SEARCH_REPLAY_DATAS } from "./config";
+import { handelGetTemproaryData, handelOpenNewTab, handelSaveTemproaryData, handleAttachDebugger, handleDetachBugger, handleRunActions, handleSaveReplayText, handleSearchReplay, simulateClickWithDebugger } from "./events";
 
 export const ACTICON_MAP = {
     [SAVE_REPLAY_TEXT]: handleSaveReplayText,
@@ -8,4 +8,7 @@ export const ACTICON_MAP = {
     [SAVE_TEMPORARY_DATA]: handelSaveTemproaryData,
     [GET_TEMPORARY_DATA]: handelGetTemproaryData,
 		[OPEN_NEW_TAB]: handelOpenNewTab,
+    [DETACH_DEBUGGER]: handleDetachBugger,
+		[DEBUGGER_CLICK]: simulateClickWithDebugger,
+    [ATTACH_DEBUGGER]: handleAttachDebugger,
 }

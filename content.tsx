@@ -15,7 +15,9 @@ import ActionEditor from '~components/actioneditor';
 import FakerConfigDialog from '~components/fakerconfigdialog';
 import FakerPopupSelector from '~components/fakerpopupselector';
 import { Storage } from '@plasmohq/storage';
-import { LocaleMap } from '~runactions';
+import runAction, { LocaleMap } from '~runactions';
+import { BG_RUN_ACTION } from '~actions/config';
+import { detachDebugger } from '~api';
 
 const faker = new Faker({ locale: [LocaleMap['zh_CN']] });
 const storage = new Storage();
@@ -63,6 +65,7 @@ export default function InitContent() {
     };
     
     useEffect(() => {
+        console.log('InitContent')
         // 从存储中加载设置
         const loadSettings = async () => {
             try {
@@ -103,7 +106,18 @@ export default function InitContent() {
                     setSlashTriggerDomains(message.domains);
                 }
                 sendResponse({ result: 'success' });
-            }
+            } else if (message.action === BG_RUN_ACTION) {
+                const { datas } = message;
+				console.log('status---', datas)
+				const status = await runAction(datas.flowData.nodes, datas.flowData.edges, datas.nextId, datas.taskId, datas.tabId)
+				console.log('status---', status)
+				if (status === -1) {
+					message.warning('没有找到对应DOM')
+				} else if (status === 0) {
+					message.error('处理失败')
+				}
+				await detachDebugger(datas.tabId)
+			}
             return true;
         };
         
@@ -194,7 +208,8 @@ export default function InitContent() {
             document.removeEventListener('click', handleInputClick);
             window.removeEventListener('scroll', handleScroll);
         };
-    }, [slashTriggerEnabled, slashTriggerDomains, fakerPopupVisible, mousePosition]);
+    }, [slashTriggerEnabled, fakerPopupVisible]);
+    // mousePosition, slashTriggerDomains
     
     const applyFakerToActiveElement = (fakerType) => {
         const activeElement = document.activeElement;

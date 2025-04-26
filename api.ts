@@ -1,4 +1,4 @@
-import { SAVE_REPLAY_TEXT, SEARCH_REPLAY_DATAS, RUN_ACTIONS, SAVE_TEMPORARY_DATA, GET_TEMPORARY_DATA, OPEN_NEW_TAB } from "~actions/config";
+import { SAVE_REPLAY_TEXT, SEARCH_REPLAY_DATAS, RUN_ACTIONS, SAVE_TEMPORARY_DATA, GET_TEMPORARY_DATA, OPEN_NEW_TAB, DETACH_DEBUGGER, DEBUGGER_CLICK, ATTACH_DEBUGGER } from "~actions/config";
 const request = (sendData, fn = null) => {
     return new Promise((resolve) => {
         console.log('requst---', sendData)
@@ -44,4 +44,19 @@ export async function getTemporaryData() {
 
 export async function openNewTab( taskId, flowData, newTabUrl, nextId, status, time = 0) {
 		return await request({ action: OPEN_NEW_TAB, datas: { flowData, newTabUrl, nextId, status,  taskId, time } })
+}
+
+
+export async function detachDebugger(tabId) {
+    console.log('detachDebugger---', tabId)
+    return await request({ action: DETACH_DEBUGGER, datas: { tabId } })
+}
+
+export async function simulateClickWithDebugger(data) {
+    return await request({ action: DEBUGGER_CLICK, datas: {...data } })
+}
+
+export async function atttachDebugger(data) {
+    console.log('atttachDebugger---', data)
+    return await request({ action: ATTACH_DEBUGGER, datas: {...data } })
 }

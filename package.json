@@ -35,7 +35,8 @@
     ],
     "permissions": [
       "contextMenus",
-      "unlimitedStorage"
+      "unlimitedStorage",
+       "debugger"
     ],
     "commands": {
       "active_extention_launcher": {

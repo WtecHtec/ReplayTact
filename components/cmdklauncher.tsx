@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react'
 import { Command } from 'cmdk'
 import { Button, message, Tag } from 'antd';
-import { searchReplayDatas } from '~api'
+import { detachDebugger, searchReplayDatas } from '~api'
 import { getDomain } from '~uitls'
 import runAction from '~runactions';
 import TextSvg from 'data-base64:~assets/text.svg'
@@ -29,15 +29,17 @@ export default function CmdkLauncher() {
 					getReplayDatas()
 				}
 			}
-			else if (action === BG_RUN_ACTION) {
-				const status = await runAction(datas.flowData.nodes, datas.flowData.edges, datas.nextId, datas.taskId)
-				console.log('status---', status)
-				if (status === -1) {
-					message.warning('没有找到对应DOM')
-				} else if (status === 0) {
-					message.error('处理失败')
-				}
-			}
+			// else if (action === BG_RUN_ACTION) {
+			// 	console.log('status---', datas)
+			// 	const status = await runAction(datas.flowData.nodes, datas.flowData.edges, datas.nextId, datas.taskId, datas.tabId)
+			// 	console.log('status---', status)
+			// 	if (status === -1) {
+			// 		message.warning('没有找到对应DOM')
+			// 	} else if (status === 0) {
+			// 		message.error('处理失败')
+			// 	}
+			// 	await detachDebugger(datas.tabId)
+			// }
 		}
 		const handleEscape = (e) => {
 			if (e.key === 'Escape') {
@@ -74,6 +76,7 @@ export default function CmdkLauncher() {
 		} else if (status === 0) {
 			message.error('处理失败')
 		}
+		await detachDebugger('')
 	}
 	const handelCommandItem = (value) => {
 		console.log('handelCommandItem', value)

@@ -62,7 +62,7 @@ export async function handelOpenNewTab(message) {
 	// const tabs = await chrome.tabs.query({ active: true, currentWindow: true })
 	const tab = await chrome.tabs.create({
 		url: datas.newTabUrl,
-		active: false
+		active: true
 	});
 	console.log(tab)
 	openNewTabDatas.push({
@@ -87,4 +87,61 @@ export async function handelOpenNewTab(message) {
 	// }
 	// const result = GlobalState.instance.set('action', actionData)
 	sendResponse({ datas });
+}
+
+
+
+export async function handleDetachBugger(message) {
+	const {  sendResponse } = message
+	const tabs = await chrome.tabs.query({ active: true, currentWindow: true })
+	chrome.debugger.detach({tabId: tabs[0].id});
+	sendResponse({  });
+}
+export async function simulateClickWithDebugger(message) {
+	const { request, sendResponse } = message
+	const { datas } = request
+	const { selector, tabId, rect } = datas
+	console.log('simulateClickWithDebugger', datas)
+	// 1. 获取元素位置
+	// const script = `document.querySelector("${selector}").getBoundingClientRect()`;
+	// const result = await chrome.debugger.sendCommand({tabId: tabId}, "Runtime.evaluate", {
+	//   expression: script
+	// }) as any;
+	
+	// const rect = result.result.value;
+	const x = rect.left + rect.width / 2;
+	const y = rect.top + rect.height / 2;
+	
+	// 2. 模拟鼠标事件序列
+	await chrome.debugger.sendCommand({tabId: tabId}, "Input.dispatchMouseEvent", {
+	  type: "mousePressed",
+	  x: x,
+	  y: y,
+	  button: "left",
+	  clickCount: 1
+	});
+	
+	await chrome.debugger.sendCommand({tabId: tabId}, "Input.dispatchMouseEvent", {
+	  type: "mouseReleased",
+	  x: x,
+	  y: y,
+	  button: "left",
+	  clickCount: 1
+	});
+	sendResponse({  });
+}
+
+
+export async function handleAttachDebugger(message) {
+	const { request, sendResponse } = message
+	const { datas } = request
+	const tabs = await chrome.tabs.query({ active: true, currentWindow: true })
+	const tabId = tabs[0].id
+	chrome.debugger.attach({tabId: tabId}, "1.3", () => {
+		if (chrome.runtime.lastError) {
+			console.error(chrome.runtime.lastError);
+			return;
+		}
+		sendResponse({ datas: tabId  });
+	});
 }
