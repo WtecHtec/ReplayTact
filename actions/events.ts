@@ -70,22 +70,18 @@ export async function handelOpenNewTab(message) {
 		action: datas
 	})
 	GlobalState.instance.set('openNewTab', [...openNewTabDatas])
+	const actionData = GlobalState.instance.get('action') || []
 	// chrome.tabs.sendMessage(tab.id, { action: BG_RUN_ACTION, datas: datas }, function (response) {
 	// 	console.log(response?.result);
 	// });
 	// if (tab  && Array.isArray(actionData)) {
-	// 	const actionIndex = actionData.findIndex(item => item.taskId === datas.taskId)
-	// 	if (datas.status !== 1 ) {
-	// 		actionIndex > -1 && actionData.splice(actionIndex, 1, )
-	// 		return
-	// 	}
-	// 	if (actionIndex > -1) {
-	// 		actionData.splice(actionIndex, 1, { ...datas, tabId: tab.id, })
-	// 	} else {
-	// 		actionData.push({ ...datas, tabId: tab.id })
-	// 	}
-	// }
-	// const result = GlobalState.instance.set('action', actionData)
+	const actionIndex = actionData.findIndex(item => item.taskId === datas.taskId)
+	if (actionIndex > -1) {
+		actionData.splice(actionIndex, 1, { ...datas, tabId: tab.id, })
+	} else {
+		actionData.push({ ...datas, tabId: tab.id })
+	}
+	const result = GlobalState.instance.set('action', actionData)
 	sendResponse({ datas });
 }
 
@@ -94,13 +90,16 @@ export async function handelOpenNewTab(message) {
 export async function handleDetachBugger(message) {
 	const {  sendResponse } = message
 	const tabs = await chrome.tabs.query({ active: true, currentWindow: true })
+	console.log('tabs', tabs[0].id)
 	chrome.debugger.detach({tabId: tabs[0].id});
 	sendResponse({  });
 }
 export async function simulateClickWithDebugger(message) {
 	const { request, sendResponse } = message
 	const { datas } = request
-	const { selector, tabId, rect } = datas
+	const { selector, rect } = datas
+	const tabs = await chrome.tabs.query({ active: true, currentWindow: true })
+	const tabId = tabs[0].id
 	console.log('simulateClickWithDebugger', datas)
 	// 1. 获取元素位置
 	// const script = `document.querySelector("${selector}").getBoundingClientRect()`;
@@ -109,7 +108,7 @@ export async function simulateClickWithDebugger(message) {
 	// }) as any;
 	
 	// const rect = result.result.value;
-	const x = rect.left + rect.width / 2;
+	const x = rect.left + rect.width / 2 ;
 	const y = rect.top + rect.height / 2;
 	
 	// 2. 模拟鼠标事件序列
@@ -144,4 +143,41 @@ export async function handleAttachDebugger(message) {
 		}
 		sendResponse({ datas: tabId  });
 	});
+}
+
+
+export async function simulateClickWithXY(message) {
+	const { request, sendResponse } = message
+	const { datas } = request
+	const { selector, x, y } = datas
+	const tabs = await chrome.tabs.query({ active: true, currentWindow: true })
+	const tabId = tabs[0].id
+	console.log('simulateClickWithDebugger', datas)
+	// 1. 获取元素位置
+	// const script = `document.querySelector("${selector}").getBoundingClientRect()`;
+	// const result = await chrome.debugger.sendCommand({tabId: tabId}, "Runtime.evaluate", {
+	//   expression: script
+	// }) as any;
+	
+	// const rect = result.result.value;
+	// const x = rect.left + rect.width / 2 ;
+	// const y = rect.top + rect.height / 2;
+	
+	// 2. 模拟鼠标事件序列
+	await chrome.debugger.sendCommand({tabId: tabId}, "Input.dispatchMouseEvent", {
+	  type: "mousePressed",
+	  x: x,
+	  y: y,
+	  button: "left",
+	  clickCount: 1
+	});
+	
+	await chrome.debugger.sendCommand({tabId: tabId}, "Input.dispatchMouseEvent", {
+	  type: "mouseReleased",
+	  x: x,
+	  y: y,
+	  button: "left",
+	  clickCount: 1
+	});
+	sendResponse({  });
 }

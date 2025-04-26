@@ -1,4 +1,4 @@
-import { SAVE_REPLAY_TEXT, SEARCH_REPLAY_DATAS, RUN_ACTIONS, SAVE_TEMPORARY_DATA, GET_TEMPORARY_DATA, OPEN_NEW_TAB, DETACH_DEBUGGER, DEBUGGER_CLICK, ATTACH_DEBUGGER } from "~actions/config";
+import { SAVE_REPLAY_TEXT, SEARCH_REPLAY_DATAS, RUN_ACTIONS, SAVE_TEMPORARY_DATA, GET_TEMPORARY_DATA, OPEN_NEW_TAB, DETACH_DEBUGGER, DEBUGGER_CLICK, ATTACH_DEBUGGER, DEBUGGER_CLICK_XY } from "~actions/config";
 const request = (sendData, fn = null) => {
     return new Promise((resolve) => {
         console.log('requst---', sendData)
@@ -59,4 +59,8 @@ export async function simulateClickWithDebugger(data) {
 export async function atttachDebugger(data) {
     console.log('atttachDebugger---', data)
     return await request({ action: ATTACH_DEBUGGER, datas: {...data } })
+}
+
+export async function simulateClickWithDebuggerXY(data) {
+    return await request({ action: DEBUGGER_CLICK_XY, datas: {...data } })
 }

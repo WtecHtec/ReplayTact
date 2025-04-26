@@ -62,7 +62,7 @@ export default function ActionEditor() {
 		id: '',
 		edge: null
 	})
-	const [newTab, setNewTab] = useState('0')
+	const [newTab, setNewTab] = useState(currentFrom.data?.newtab || '0')
 
 	const [showUseFaker, setShowUseFaker] = useState(false)
 	const [showFakerType, setShowFakerType] = useState(false)
@@ -192,6 +192,7 @@ export default function ActionEditor() {
 				setDesc(desc)
 			}
 		}
+		setNewTab(data.newtab || '0')
 		form.setFieldsValue(data)
 		console.log('node', node)
 		setCurrentFrom(node)
@@ -355,7 +356,7 @@ export default function ActionEditor() {
 										</Radio.Group>
 									</Form.Item>
 									{
-										newTab === '1' || currentFrom.data?.newtab === '1'
+										newTab === '1'
 											? <Form.Item name="newtaburl" label="新标签URL" rules={[{ required: true, }]}>
 												<Input />
 											</Form.Item>

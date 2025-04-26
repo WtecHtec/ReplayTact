@@ -198,21 +198,16 @@ function bindTabUpdate() {
             console.log('item.taskId === tab.openerTabId', action)
 				
             if (action) {
-                chrome.tabs.sendMessage(tabId, { action: BG_RUN_ACTION, datas: action }, function (response) {
+                chrome.tabs.sendMessage(tabId, { action: BG_RUN_ACTION, datas: { ...action, tabId} }, function (response) {
                     console.log(response?.result);
                 });
-                // chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-                //     console.log('tab', tabs, 'action', action)
-                // 	chrome.tabs.sendMessage(tabs[0].id, { action: BG_RUN_ACTION, datas: action }, function (response) {
-                // 			console.log(response?.result);
-                // 	});
-                // });
+
             } else {
 							const openNewTabDatas = GlobalState.instance.get('openNewTab') || []
 							console.log('openNewTabDatas---', openNewTabDatas)
 							const tabActionIdx = openNewTabDatas.findIndex(item => item.tabId === tabId)
 							if (tabActionIdx > -1) {
-								chrome.tabs.sendMessage(tabId, { action: BG_RUN_ACTION, datas: openNewTabDatas[tabActionIdx].action }, function (response) {
+								chrome.tabs.sendMessage(tabId, { action: BG_RUN_ACTION, datas: {...openNewTabDatas[tabActionIdx].action, tabId} }, function (response) {
 									console.log(response?.result);
 									openNewTabDatas.splice(tabActionIdx, 1)
 									GlobalState.instance.set('openNewTab', openNewTabDatas)

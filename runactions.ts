@@ -1,4 +1,4 @@
-import { atttachDebugger, detachDebugger, openNewTab, runActions, simulateClickWithDebugger } from "~api"
+import { atttachDebugger, detachDebugger, openNewTab, runActions, simulateClickWithDebugger, simulateClickWithDebuggerXY } from "~api"
 import { fakerStrategies } from "~faker/config"
 import { uuid } from "~uitls"
 import { Faker, es, zh_CN } from '@faker-js/faker';
@@ -55,12 +55,13 @@ async function handleClick(data, tabId) {
                 el.dispatchEvent(event);
                 el.click()
 
-                const rect = el.getBoundingClientRect();
+                
+            })
+            const rect = el.getBoundingClientRect();
                 await simulateClickWithDebugger( {
                     rect,
                     tabId
                 })
-            })
         } catch (error) {
             return 0
         }
@@ -190,6 +191,7 @@ async function runAction(nodes, edges, startSource = 'start', taskId = '', tabId
     if (!Array.isArray(nodes) || !Array.isArray(edges)) return
     const cpNode = JSON.parse(JSON.stringify(nodes))
     const endId = 'end'
+   
     // let tabId = ''
     return new Promise(async (resolve) => {
         // 单个链表
@@ -205,8 +207,14 @@ async function runAction(nodes, edges, startSource = 'start', taskId = '', tabId
                 await openNewTab(taskId, { nodes: cpNode, edges }, currentNode.data.newtaburl, 'start', 1, new Date().getTime())
                 return
             } else {
+                await waitTime(1000)
                 const datas  = await atttachDebugger(tabId) as any
                 console.log('atttachDebugger datas', datas)
+                await  simulateClickWithDebuggerXY({
+                    x: 0,
+                    y: 0,
+                    tabId: datas.datas || ''
+                })
                 tabId = datas.datas || ''
                 await runActions(taskId, currentEdge.target, 1, { nodes, edges }, new Date().getTime())
             }
